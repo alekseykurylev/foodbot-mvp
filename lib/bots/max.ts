@@ -1,6 +1,17 @@
 import { Bot } from "@maxhub/max-bot-api";
 import type { Update } from "@maxhub/max-bot-api/types";
 
+const MAX_BOT_COMMANDS = [
+  {
+    name: "start",
+    description: "Начать работу с ботом",
+  },
+  {
+    name: "menu",
+    description: "Открыть меню",
+  },
+];
+
 type WebhookMaxBot = {
   handleUpdate(update: Update): Promise<void>;
 };
@@ -68,7 +79,7 @@ export async function handleMaxUpdate(update: Update) {
   const webhookBot = bot as unknown as WebhookMaxBot;
 
   if (!bot.botInfo) {
-    maxBotInitPromise ??= bot.api.getMyInfo().then((botInfo) => {
+    maxBotInitPromise ??= bot.api.setMyCommands(MAX_BOT_COMMANDS).then((botInfo) => {
       bot.botInfo = botInfo;
     });
     await maxBotInitPromise;

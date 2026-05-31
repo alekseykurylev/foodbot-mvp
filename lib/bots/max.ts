@@ -1,16 +1,6 @@
 import { Bot } from "@maxhub/max-bot-api";
 import type { Update } from "@maxhub/max-bot-api/types";
-
-const MAX_BOT_COMMANDS = [
-  {
-    name: "start",
-    description: "Начать работу с ботом",
-  },
-  {
-    name: "menu",
-    description: "Открыть меню",
-  },
-];
+import { MAX_BOT_COMMANDS } from "@/lib/bots/commands";
 
 type WebhookMaxBot = {
   handleUpdate(update: Update): Promise<void>;

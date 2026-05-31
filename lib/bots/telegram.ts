@@ -1,4 +1,5 @@
 import { Bot, GrammyError, HttpError } from "grammy";
+import { TELEGRAM_BOT_COMMANDS } from "@/lib/bots/commands";
 
 let telegramBot: Bot | undefined;
 
@@ -18,6 +19,13 @@ export function getTelegramBot() {
   }
 
   const bot = new Bot(getTelegramBotToken());
+
+  bot.init = async (...args: Parameters<typeof bot.init>) => {
+    const [signal] = args;
+
+    await Bot.prototype.init.call(bot, signal);
+    await bot.api.setMyCommands(TELEGRAM_BOT_COMMANDS, undefined, signal);
+  };
 
   bot.command("start", async (ctx) => {
     const name = ctx.from?.first_name ?? "друг";

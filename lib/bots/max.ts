@@ -6,6 +6,7 @@ type WebhookMaxBot = {
 };
 
 let maxBot: Bot | undefined;
+let maxBotInitPromise: Promise<void> | undefined;
 
 function getMaxBotToken() {
   const token = process.env.MAX_BOT_TOKEN;
@@ -65,6 +66,13 @@ export function getMaxBot() {
 export async function handleMaxUpdate(update: Update) {
   const bot = getMaxBot();
   const webhookBot = bot as unknown as WebhookMaxBot;
+
+  if (!bot.botInfo) {
+    maxBotInitPromise ??= bot.api.getMyInfo().then((botInfo) => {
+      bot.botInfo = botInfo;
+    });
+    await maxBotInitPromise;
+  }
 
   await webhookBot.handleUpdate(update);
 }

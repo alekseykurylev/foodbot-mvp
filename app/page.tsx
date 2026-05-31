@@ -1,3 +1,5 @@
+import { UserData } from "@/components/UserData";
+
 export default function Page() {
-  return <div>Page</div>;
+  return <UserData />;
 }

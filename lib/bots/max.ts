@@ -1,6 +1,7 @@
 import { Bot } from "@maxhub/max-bot-api";
 import type { Update } from "@maxhub/max-bot-api/types";
 import { MAX_BOT_COMMANDS } from "@/lib/bots/commands";
+import { askDeepSeek } from "@/lib/deepseek";
 
 type WebhookMaxBot = {
   handleUpdate(update: Update): Promise<void>;
@@ -50,9 +51,7 @@ export function getMaxBot() {
       return;
     }
 
-    await ctx.reply(
-      "Принял сообщение. Следующий шаг MVP: связать этот чат с меню, корзиной и уведомлениями администратору.",
-    );
+    await ctx.reply(await askDeepSeek(text));
   });
 
   bot.catch((err, ctx) => {

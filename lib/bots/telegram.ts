@@ -1,5 +1,6 @@
 import { Bot, GrammyError, HttpError } from "grammy";
 import { TELEGRAM_BOT_COMMANDS } from "@/lib/bots/commands";
+import { askDeepSeek } from "@/lib/deepseek";
 
 let telegramBot: Bot | undefined;
 
@@ -40,9 +41,7 @@ export function getTelegramBot() {
   });
 
   bot.on("message:text", async (ctx) => {
-    await ctx.reply(
-      "Принял сообщение. Следующий шаг MVP: связать этот чат с меню, корзиной и уведомлениями администратору.",
-    );
+    await ctx.reply(await askDeepSeek(ctx.message.text));
   });
 
   bot.catch((err) => {

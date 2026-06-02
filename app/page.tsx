@@ -1,5 +1,5 @@
-import { UserData } from "@/components/UserData";
+import { Container } from "@mantine/core";
 
 export default function Page() {
-  return <UserData />;
+  return <Container>menu</Container>;
 }

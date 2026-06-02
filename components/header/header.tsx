@@ -44,13 +44,14 @@ export function Header() {
         {/*<Group gap={5} visibleFrom="xs">*/}
         {/*  {items}*/}
         {/*</Group>*/}
-        <Burger
-          opened={opened}
-          onClick={toggle}
-          hiddenFrom="xs"
-          size="sm"
-          aria-label="Toggle navigation"
-        />
+
+        {/*<Burger*/}
+        {/*  opened={opened}*/}
+        {/*  onClick={toggle}*/}
+        {/*  hiddenFrom="xs"*/}
+        {/*  size="sm"*/}
+        {/*  aria-label="Toggle navigation"*/}
+        {/*/>*/}
       </Container>
 
       <Drawer

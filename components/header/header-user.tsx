@@ -53,9 +53,9 @@ export function HeaderUser() {
           </Table.Tbody>
         </Table>
 
-        <Code mt="md" block>
-          {JSON.stringify(state.raw ?? null, null, 2)}
-        </Code>
+        {/*<Code mt="md" block>*/}
+        {/*  {JSON.stringify(state.raw ?? null, null, 2)}*/}
+        {/*</Code>*/}
       </Popover.Dropdown>
     </Popover>
   );

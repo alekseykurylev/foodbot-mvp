@@ -2,22 +2,35 @@
   "name": "foodbot-mvp",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "type-check": "next typegen && tsc --noEmit",
+    "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
+    "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
+    "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
+    "migrate:create": "pnpm payload migrate:create",
+    "ci": "pnpm payload migrate && pnpm build"
   },
   "dependencies": {
     "@mantine/core": "^9.2.2",
     "@mantine/form": "^9.2.2",
     "@mantine/hooks": "^9.2.2",
     "@maxhub/max-bot-api": "^0.2.2",
+    "@payloadcms/db-postgres": "^3.85.0",
+    "@payloadcms/next": "^3.85.0",
+    "@payloadcms/translations": "^3.85.0",
+    "cross-env": "^10.1.0",
     "grammy": "^1.43.0",
     "next": "16.2.6",
     "openai": "^6.39.1",
+    "payload": "^3.85.0",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@types/node": "^20",

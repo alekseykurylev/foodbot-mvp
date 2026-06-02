@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Burger, Container, Divider, Drawer, ScrollArea } from "@mantine/core";
+import { Container, Divider, Drawer, ScrollArea } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import classes from "./header.module.css";
 import { Logo } from "@/components/logo";
@@ -37,8 +37,8 @@ export function Header() {
     <header className={classes.header}>
       <Container size="md" className={classes.inner}>
         <div className={classes.logo}>
-          <Logo size={28} />
-          foodbot
+          <Logo size={38} />
+          FoodBot
         </div>
         <HeaderUser />
         {/*<Group gap={5} visibleFrom="xs">*/}

@@ -67,16 +67,24 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    'payload-kv': PayloadKv;
     users: User;
+    media: Media;
+    categories: Category;
+    products: Product;
+    customers: Customer;
+    'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
   collectionsJoins: {};
   collectionsSelect: {
-    'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    media: MediaSelect<false> | MediaSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    products: ProductsSelect<false> | ProductsSelect<true>;
+    customers: CustomersSelect<false> | CustomersSelect<true>;
+    'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -117,27 +125,11 @@ export interface UserAuthOperations {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-kv".
- */
-export interface PayloadKv {
-  id: number;
-  key: string;
-  data:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
   id: number;
+  role: 'admin' | 'operator';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -159,14 +151,216 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  alt: string;
+  caption?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+  sizes?: {
+    thumbnail?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    card?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    wide?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  name: string;
+  /**
+   * Заполняется автоматически из названия, но его можно отредактировать вручную.
+   */
+  slug: string;
+  description?: string | null;
+  image?: (number | null) | Media;
+  isActive?: boolean | null;
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products".
+ */
+export interface Product {
+  id: number;
+  name: string;
+  /**
+   * Заполняется автоматически из названия, но его можно отредактировать вручную.
+   */
+  slug: string;
+  category: number | Category;
+  status: 'active' | 'hidden' | 'out_of_stock';
+  /**
+   * Цена в рублях.
+   */
+  price: number;
+  oldPrice?: number | null;
+  description?: string | null;
+  image?: (number | null) | Media;
+  details?: {
+    weightGrams?: number | null;
+    portionSize?: string | null;
+    ingredients?: string | null;
+    nutrition?: {
+      servingBasis?: ('per_100g' | 'per_serving') | null;
+      caloriesKcal?: number | null;
+      proteinGrams?: number | null;
+      fatGrams?: number | null;
+      carbsGrams?: number | null;
+    };
+    /**
+     * От 0 до 5.
+     */
+    spicyLevel?: number | null;
+  };
+  recommendation?: {
+    isRecommended?: boolean | null;
+    peopleMin?: number | null;
+    peopleMax?: number | null;
+    /**
+     * Например: хорошо подходит детям, офису, большой компании.
+     */
+    aiDescription?: string | null;
+  };
+  /**
+   * Например: мясное, без свинины, детское, острое.
+   */
+  tags?: string[] | null;
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customers".
+ */
+export interface Customer {
+  id: number;
+  displayName: string;
+  phone?: string | null;
+  email?: string | null;
+  /**
+   * Идентификатор пользователя Telegram для связки с ботом.
+   */
+  telegramUserId?: string | null;
+  telegramUsername?: string | null;
+  /**
+   * Идентификатор пользователя MAX для связки с ботом.
+   */
+  maxUserId?: string | null;
+  maxFirstName?: string | null;
+  maxLastName?: string | null;
+  status: 'active' | 'new' | 'vip' | 'blocked';
+  addresses?:
+    | {
+        label?: string | null;
+        apartment?: string | null;
+        intercom?: string | null;
+        entrance?: string | null;
+        floor?: string | null;
+        comment?: string | null;
+        isDefault?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
+  preferences?: {
+    favoriteCategories?: (number | Category)[] | null;
+    dislikes?: string[] | null;
+    noPork?: boolean | null;
+    noSpicy?: boolean | null;
+  };
+  marketing?: {
+    acceptsTelegramMessages?: boolean | null;
+    acceptsMaxMessages?: boolean | null;
+    source?: ('telegram' | 'max' | 'admin' | 'aggregator' | 'other') | null;
+  };
+  /**
+   * Внутренние заметки для администратора.
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-kv".
+ */
+export interface PayloadKv {
+  id: number;
+  key: string;
+  data:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
   id: number;
-  document?: {
-    relationTo: 'users';
-    value: number | User;
-  } | null;
+  document?:
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null)
+    | ({
+        relationTo: 'media';
+        value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'categories';
+        value: number | Category;
+      } | null)
+    | ({
+        relationTo: 'products';
+        value: number | Product;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: number | Customer;
+      } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
@@ -211,17 +405,10 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-kv_select".
- */
-export interface PayloadKvSelect<T extends boolean = true> {
-  key?: T;
-  data?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  role?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -238,6 +425,169 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media_select".
+ */
+export interface MediaSelect<T extends boolean = true> {
+  alt?: T;
+  caption?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+  sizes?:
+    | T
+    | {
+        thumbnail?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        card?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        wide?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+      };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  description?: T;
+  image?: T;
+  isActive?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products_select".
+ */
+export interface ProductsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  category?: T;
+  status?: T;
+  price?: T;
+  oldPrice?: T;
+  description?: T;
+  image?: T;
+  details?:
+    | T
+    | {
+        weightGrams?: T;
+        portionSize?: T;
+        ingredients?: T;
+        nutrition?:
+          | T
+          | {
+              servingBasis?: T;
+              caloriesKcal?: T;
+              proteinGrams?: T;
+              fatGrams?: T;
+              carbsGrams?: T;
+            };
+        spicyLevel?: T;
+      };
+  recommendation?:
+    | T
+    | {
+        isRecommended?: T;
+        peopleMin?: T;
+        peopleMax?: T;
+        aiDescription?: T;
+      };
+  tags?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customers_select".
+ */
+export interface CustomersSelect<T extends boolean = true> {
+  displayName?: T;
+  phone?: T;
+  email?: T;
+  telegramUserId?: T;
+  telegramUsername?: T;
+  maxUserId?: T;
+  maxFirstName?: T;
+  maxLastName?: T;
+  status?: T;
+  addresses?:
+    | T
+    | {
+        label?: T;
+        apartment?: T;
+        intercom?: T;
+        entrance?: T;
+        floor?: T;
+        comment?: T;
+        isDefault?: T;
+        id?: T;
+      };
+  preferences?:
+    | T
+    | {
+        favoriteCategories?: T;
+        dislikes?: T;
+        noPork?: T;
+        noSpicy?: T;
+      };
+  marketing?:
+    | T
+    | {
+        acceptsTelegramMessages?: T;
+        acceptsMaxMessages?: T;
+        source?: T;
+      };
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-kv_select".
+ */
+export interface PayloadKvSelect<T extends boolean = true> {
+  key?: T;
+  data?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

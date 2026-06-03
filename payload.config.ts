@@ -21,9 +21,17 @@ export default buildConfig({
     },
     components: {
       graphics: {
-        Logo: "/components/logo",
-        Icon: "/components/logo",
+        Logo: "/components/logo-payload",
+        Icon: "/components/icon-payload",
       },
+    },
+    meta: {
+      icons: [
+        {
+          rel: "shortcut icon",
+          url: "/favicon.svg",
+        },
+      ],
     },
     dateFormat: "dd.MM.yyyy HH:mm",
     timezones: {

@@ -5,8 +5,10 @@ import { buildConfig } from "payload";
 import path from "path";
 import { fileURLToPath } from "url";
 import { Categories } from "./collections/categories";
+import { CustomerAddresses } from "./collections/customer-addresses";
 import { Customers } from "./collections/customers";
 import { Media } from "./collections/media";
+import { Orders } from "./collections/orders";
 import { Products } from "./collections/products";
 import { Users } from "./collections/users";
 
@@ -38,7 +40,7 @@ export default buildConfig({
       defaultTimezone: "Europe/Moscow",
     },
   },
-  collections: [Users, Media, Categories, Products, Customers],
+  collections: [Users, Media, Categories, Products, Customers, CustomerAddresses, Orders],
   secret: process.env.PAYLOAD_SECRET || "",
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),

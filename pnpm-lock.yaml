@@ -26,6 +26,9 @@ importers:
       '@payloadcms/next':
         specifier: ^3.85.0
         version: 3.85.0(@types/react@19.2.15)(graphql@16.14.1)(monaco-editor@0.55.1)(next@16.2.6(@babel/core@7.29.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.77.4))(payload@3.85.0(graphql@16.14.1)(typescript@5.9.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
+      '@payloadcms/sdk':
+        specifier: ^3.85.0
+        version: 3.85.0(graphql@16.14.1)(typescript@5.9.3)
       '@payloadcms/translations':
         specifier: ^3.85.0
         version: 3.85.0
@@ -1100,6 +1103,9 @@ packages:
       graphql: ^16.8.1
       next: '>=15.2.9 <15.3.0 || >=15.3.9 <15.4.0 || >=15.4.11 <15.5.0 || >=16.2.6 <17.0.0'
       payload: 3.85.0
+
+  '@payloadcms/sdk@3.85.0':
+    resolution: {integrity: sha512-j6JStszuUKq1Ge6ZjJ40qGmIbm0xSDNe09B19r4WLvhZbOKtiDMrF7Btm+WWvLPOeJEhDe57z/ayNNJmsmP4hg==}
 
   '@payloadcms/translations@3.85.0':
     resolution: {integrity: sha512-dZQc3OfVtp7IkL9R3e4t1n7MbDaKfhF6C6ewISOzJgkgrcdoCfrqXonwMYE4Ue6IDEqAtJuyEkOvFWew5tBHKw==}
@@ -4262,6 +4268,18 @@ snapshots:
       - react-dom
       - supports-color
       - typescript
+
+  '@payloadcms/sdk@3.85.0(graphql@16.14.1)(typescript@5.9.3)':
+    dependencies:
+      payload: 3.85.0(graphql@16.14.1)(typescript@5.9.3)
+      qs-esm: 8.0.1
+      ts-essentials: 10.0.3(typescript@5.9.3)
+    transitivePeerDependencies:
+      - bufferutil
+      - graphql
+      - supports-color
+      - typescript
+      - utf-8-validate
 
   '@payloadcms/translations@3.85.0':
     dependencies:

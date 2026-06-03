@@ -89,53 +89,17 @@ export const Customers: CollectionConfig = {
     },
     {
       name: "addresses",
-      type: "array",
+      type: "join",
       label: "Адреса",
-      labels: {
-        singular: "Адрес",
-        plural: "Адреса",
+      collection: "customer-addresses",
+      on: "customer",
+      defaultLimit: 10,
+      defaultSort: "-isDefault",
+      maxDepth: 1,
+      admin: {
+        allowCreate: true,
+        defaultColumns: ["label", "fullAddress", "isDefault", "status"],
       },
-      fields: [
-        {
-          name: "label",
-          type: "text",
-          label: "Название",
-          admin: {
-            placeholder: "Дом, офис",
-          },
-        },
-        {
-          name: "apartment",
-          type: "text",
-          label: "Квартира / офис",
-        },
-        {
-          name: "intercom",
-          type: "text",
-          label: "Домофон",
-        },
-        {
-          name: "entrance",
-          type: "text",
-          label: "Подъезд",
-        },
-        {
-          name: "floor",
-          type: "text",
-          label: "Этаж",
-        },
-        {
-          name: "comment",
-          type: "textarea",
-          label: "Комментарий курьеру",
-        },
-        {
-          name: "isDefault",
-          type: "checkbox",
-          label: "Адрес по умолчанию",
-          defaultValue: false,
-        },
-      ],
     },
     {
       name: "preferences",

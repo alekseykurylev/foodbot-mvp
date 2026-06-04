@@ -1,20 +1,26 @@
-import { sdk } from "@/lib/cms/payload-sdk";
+"use server";
+
+import { getPayloadLocal } from "@/lib/cms/payload-local";
 import type { Order } from "@/payload-types";
 
-export async function findOrderByPublicToken(token: string, init?: RequestInit) {
-  const result = await sdk.find(
-    {
-      collection: "orders",
-      depth: 2,
-      limit: 1,
-      where: {
-        publicToken: {
-          equals: token,
-        },
+/**
+ * Находит публичный заказ-корзину по токену.
+ * Возвращает null, если токен неизвестен или заказ истек.
+ */
+export async function findOrderByPublicToken(token: string) {
+  const payload = await getPayloadLocal();
+
+  const result = await payload.find({
+    collection: "orders",
+    depth: 2,
+    limit: 1,
+    overrideAccess: true,
+    where: {
+      publicToken: {
+        equals: token,
       },
     },
-    init,
-  );
+  });
 
   const order = result.docs[0] as Order | undefined;
 
@@ -29,122 +35,140 @@ export async function findOrderByPublicToken(token: string, init?: RequestInit) 
   return order;
 }
 
-export async function updateOrderStatus(
-  id: Order["id"],
-  status: Order["status"],
-  init?: RequestInit,
-) {
-  return sdk.update(
-    {
-      collection: "orders",
-      id,
-      data: {
-        status,
-      },
+/**
+ * Обновляет только workflow-статус заказа.
+ */
+export async function updateOrderStatus(id: Order["id"], status: Order["status"]) {
+  const payload = await getPayloadLocal();
+
+  return payload.update({
+    collection: "orders",
+    id,
+    data: {
+      status,
     },
-    init,
-  );
+    overrideAccess: true,
+  });
 }
 
+/**
+ * Заменяет блок доставки в заказе.
+ */
 export async function updateOrderDelivery(
   id: Order["id"],
   delivery: Partial<NonNullable<Order["delivery"]>>,
-  init?: RequestInit,
 ) {
-  return sdk.update(
-    {
-      collection: "orders",
-      id,
-      data: {
-        delivery,
-      },
+  const payload = await getPayloadLocal();
+
+  return payload.update({
+    collection: "orders",
+    id,
+    data: {
+      delivery,
     },
-    init,
-  );
+    overrideAccess: true,
+  });
 }
 
+/**
+ * Заменяет блок оплаты в заказе.
+ */
 export async function updateOrderPayment(
   id: Order["id"],
   payment: Partial<NonNullable<Order["payment"]>>,
-  init?: RequestInit,
 ) {
-  return sdk.update(
-    {
-      collection: "orders",
-      id,
-      data: {
-        payment,
-      },
+  const payload = await getPayloadLocal();
+
+  return payload.update({
+    collection: "orders",
+    id,
+    data: {
+      payment,
     },
-    init,
-  );
+    overrideAccess: true,
+  });
 }
 
-export async function cancelOrder(id: Order["id"], init?: RequestInit) {
-  return sdk.update(
-    {
-      collection: "orders",
-      id,
-      data: {
-        cancelledAt: new Date().toISOString(),
-        status: "cancelled",
-      },
+/**
+ * Отмечает заказ как отмененный и фиксирует время отмены.
+ */
+export async function cancelOrder(id: Order["id"]) {
+  const payload = await getPayloadLocal();
+
+  return payload.update({
+    collection: "orders",
+    id,
+    data: {
+      cancelledAt: new Date().toISOString(),
+      status: "cancelled",
     },
-    init,
-  );
+    overrideAccess: true,
+  });
 }
 
-export async function markOrderAsPaid(id: Order["id"], init?: RequestInit) {
-  return sdk.update(
-    {
-      collection: "orders",
-      id,
-      data: {
-        paidAt: new Date().toISOString(),
-        payment: {
-          status: "paid",
-        },
+/**
+ * Отмечает заказ и оплату как оплаченные.
+ */
+export async function markOrderAsPaid(id: Order["id"]) {
+  const payload = await getPayloadLocal();
+
+  return payload.update({
+    collection: "orders",
+    id,
+    data: {
+      paidAt: new Date().toISOString(),
+      payment: {
         status: "paid",
       },
+      status: "paid",
     },
-    init,
-  );
+    overrideAccess: true,
+  });
 }
 
-export async function submitOrder(id: Order["id"], init?: RequestInit) {
-  return sdk.update(
-    {
-      collection: "orders",
-      id,
-      data: {
-        status: "submitted",
-        submittedAt: new Date().toISOString(),
+/**
+ * Отмечает корзину как отправленный заказ и фиксирует время отправки.
+ */
+export async function submitOrder(id: Order["id"]) {
+  const payload = await getPayloadLocal();
+
+  return payload.update({
+    collection: "orders",
+    id,
+    data: {
+      status: "submitted",
+      submittedAt: new Date().toISOString(),
+    },
+    overrideAccess: true,
+  });
+}
+
+/**
+ * Удаляет заказ по ID.
+ */
+export async function deleteOrder(id: Order["id"]) {
+  const payload = await getPayloadLocal();
+
+  return payload.delete({
+    collection: "orders",
+    id,
+    overrideAccess: true,
+  });
+}
+
+/**
+ * Считает все заказы, связанные с клиентом.
+ */
+export async function countCustomerOrders(customerID: Order["customer"]) {
+  const payload = await getPayloadLocal();
+
+  return payload.count({
+    collection: "orders",
+    overrideAccess: true,
+    where: {
+      customer: {
+        equals: typeof customerID === "object" ? customerID.id : customerID,
       },
     },
-    init,
-  );
-}
-
-export async function deleteOrder(id: Order["id"], init?: RequestInit) {
-  return sdk.delete(
-    {
-      collection: "orders",
-      id,
-    },
-    init,
-  );
-}
-
-export async function countCustomerOrders(customerID: Order["customer"], init?: RequestInit) {
-  return sdk.count(
-    {
-      collection: "orders",
-      where: {
-        customer: {
-          equals: typeof customerID === "object" ? customerID.id : customerID,
-        },
-      },
-    },
-    init,
-  );
+  });
 }

@@ -1,6 +1,7 @@
 import { Bot } from "@maxhub/max-bot-api";
-import type { Update } from "@maxhub/max-bot-api/types";
+import type { Update, User } from "@maxhub/max-bot-api/types";
 import { MAX_BOT_COMMANDS } from "@/lib/bots/commands";
+import { upsertBotCustomer } from "@/lib/domain/customers";
 import { askDeepSeek } from "@/lib/integrations/deepseek";
 
 type WebhookMaxBot = {
@@ -9,6 +10,15 @@ type WebhookMaxBot = {
 
 let maxBot: Bot | undefined;
 let maxBotInitPromise: Promise<void> | undefined;
+
+async function upsertMaxCustomer(user: User) {
+  await upsertBotCustomer({
+    channel: "max",
+    maxUserId: user.user_id,
+    maxFirstName: user.name,
+    displayName: user.name,
+  });
+}
 
 function getMaxBotToken() {
   const token = process.env.MAX_BOT_TOKEN;
@@ -28,27 +38,48 @@ export function getMaxBot() {
   const bot = new Bot(getMaxBotToken());
 
   bot.on("bot_started", async (ctx) => {
+    if (ctx.user) {
+      await upsertMaxCustomer(ctx.user);
+    }
+
     await ctx.reply(
       "Привет! Я помогу собрать заказ. Скоро здесь будет меню, корзина и подбор еды на компанию.",
     );
   });
 
   bot.command("start", async (ctx) => {
+    const sender = ctx.message.sender;
+
+    if (sender) {
+      await upsertMaxCustomer(sender);
+    }
+
     await ctx.reply(
       "Привет! Напишите, что хотите заказать, или сколько гостей нужно накормить.",
     );
   });
 
   bot.command("menu", async (ctx) => {
+    const sender = ctx.message.sender;
+
+    if (sender) {
+      await upsertMaxCustomer(sender);
+    }
+
     await ctx.reply("Меню скоро появится в Mini App. Пока можно написать заказ текстом.");
   });
 
   bot.on("message_created", async (ctx) => {
     const text = ctx.message.body.text?.trim();
+    const sender = ctx.message.sender;
 
     if (!text) {
       await ctx.reply("Пока я понимаю только текстовые сообщения.");
       return;
+    }
+
+    if (sender) {
+      await upsertMaxCustomer(sender);
     }
 
     await ctx.reply(await askDeepSeek(text));

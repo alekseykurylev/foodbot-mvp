@@ -69,6 +69,10 @@ This project uses the Payload skill installed by `npx skills add https://github.
 - Keep edits scoped to the requested behavior.
 - Avoid unrelated refactors and generated-file churn.
 
+## Git
+
+- Use Conventional Commits for commit messages: `type(scope): summary`, for example `feat(auth): add login form` or `fix(payload): handle missing relation`. Prefer common types such as `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `build`, and `ci`.
+
 ## Safety
 
 - Do not rename environment variables without updating all references and documentation.

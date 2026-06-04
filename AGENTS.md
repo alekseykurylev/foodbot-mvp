@@ -4,6 +4,12 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
+<!-- BEGIN:payload-agent-rules -->
+# Payload Skills Required
+
+This project uses the Payload skill installed by `npx skills add https://github.com/payloadcms/skills --skill payload -a codex --copy -y`. Before writing Payload code, read `.agents/skills/payload/SKILL.md` and the relevant guide in `.agents/skills/payload/reference/`. Heed security and transaction warnings.
+<!-- END:payload-agent-rules -->
+
 # Project Instructions
 
 ## Stack
@@ -43,6 +49,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Payload
 
+- Keep the local Payload skill synced with the current upstream source: `https://github.com/payloadcms/skills/tree/main/skills/payload`.
 - Check the installed Payload packages in `package.json` before relying on version-specific APIs.
 - Prefer Payload APIs and generated types over ad hoc database access.
 - When changing Payload collections, fields, or config, update generated types and migrations when needed.

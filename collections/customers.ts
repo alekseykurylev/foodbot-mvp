@@ -31,7 +31,6 @@ export const Customers: CollectionConfig = {
       name: "phone",
       type: "text",
       label: "Телефон",
-      unique: true,
       admin: {
         placeholder: "+7...",
       },

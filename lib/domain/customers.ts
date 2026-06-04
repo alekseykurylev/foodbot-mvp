@@ -22,6 +22,10 @@ type MaxCustomerInput = BaseBotCustomerInput & {
 
 export type BotCustomerInput = MaxCustomerInput | TelegramCustomerInput;
 
+type BotCustomerPhoneInput = BotCustomerInput & {
+  phone: string;
+};
+
 function normalizeBotUserID(id: number | string) {
   return String(id);
 }
@@ -139,6 +143,10 @@ async function findCustomerByBotUser(input: BotCustomerInput) {
   return result.docs[0] as Customer | undefined;
 }
 
+function normalizePhone(phone: string) {
+  return phone.trim();
+}
+
 /**
  * Находит клиента бота по ID пользователя в канале или создает нового.
  * При повторном контакте обновляет профиль канала и не затирает существующий маркетинг.
@@ -171,4 +179,22 @@ export async function upsertBotCustomer(input: BotCustomerInput) {
 
     throw error;
   }
+}
+
+/**
+ * Сохраняет телефон, который пользователь отправил через кнопку контакта бота.
+ * Если клиента еще нет в CRM, сначала создает его по данным канала.
+ */
+export async function saveBotCustomerPhone(input: BotCustomerPhoneInput) {
+  const payload = await getPayloadLocal();
+  const customer = await upsertBotCustomer(input);
+
+  return payload.update({
+    collection: "customers",
+    id: customer.id,
+    data: {
+      phone: normalizePhone(input.phone),
+    },
+    overrideAccess: true,
+  });
 }

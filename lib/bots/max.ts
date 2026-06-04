@@ -1,7 +1,7 @@
-import { Bot } from "@maxhub/max-bot-api";
+import { Bot, Keyboard as MaxKeyboard } from "@maxhub/max-bot-api";
 import type { Update, User } from "@maxhub/max-bot-api/types";
 import { MAX_BOT_COMMANDS } from "@/lib/bots/commands";
-import { upsertBotCustomer } from "@/lib/domain/customers";
+import { saveBotCustomerPhone, upsertBotCustomer } from "@/lib/domain/customers";
 import { askDeepSeek } from "@/lib/integrations/deepseek";
 
 type WebhookMaxBot = {
@@ -18,6 +18,22 @@ async function upsertMaxCustomer(user: User) {
     maxFirstName: user.name,
     displayName: user.name,
   });
+}
+
+async function saveMaxCustomerPhone(user: User, phone: string) {
+  await saveBotCustomerPhone({
+    channel: "max",
+    maxUserId: user.user_id,
+    maxFirstName: user.name,
+    displayName: user.name,
+    phone,
+  });
+}
+
+function getMaxContactKeyboard() {
+  return MaxKeyboard.inlineKeyboard([
+    [MaxKeyboard.button.requestContact("Поделиться телефоном")],
+  ]);
 }
 
 function getMaxBotToken() {
@@ -69,9 +85,33 @@ export function getMaxBot() {
     await ctx.reply("Меню скоро появится в Mini App. Пока можно написать заказ текстом.");
   });
 
+  bot.command("phone", async (ctx) => {
+    const sender = ctx.message.sender;
+
+    if (sender) {
+      await upsertMaxCustomer(sender);
+    }
+
+    await ctx.reply("Поделитесь номером телефона, чтобы мы могли связаться по заказу.", {
+      attachments: [getMaxContactKeyboard()],
+    });
+  });
+
   bot.on("message_created", async (ctx) => {
     const text = ctx.message.body.text?.trim();
     const sender = ctx.message.sender;
+    const phone = ctx.contactInfo?.tel;
+
+    if (phone) {
+      if (!sender) {
+        await ctx.reply("Не удалось определить пользователя. Попробуйте отправить номер еще раз.");
+        return;
+      }
+
+      await saveMaxCustomerPhone(sender, phone);
+      await ctx.reply("Спасибо, сохранил ваш телефон.");
+      return;
+    }
 
     if (!text) {
       await ctx.reply("Пока я понимаю только текстовые сообщения.");

@@ -1,6 +1,6 @@
-import { Bot, GrammyError, HttpError } from "grammy";
+import { Bot, GrammyError, HttpError, Keyboard } from "grammy";
 import { TELEGRAM_BOT_COMMANDS } from "@/lib/bots/commands";
-import { upsertBotCustomer } from "@/lib/domain/customers";
+import { saveBotCustomerPhone, upsertBotCustomer } from "@/lib/domain/customers";
 import { askDeepSeek } from "@/lib/integrations/deepseek";
 
 let telegramBot: Bot | undefined;
@@ -21,6 +21,31 @@ async function upsertTelegramCustomer(user: {
     telegramUsername: user.username,
     displayName: getTelegramDisplayName(user),
   });
+}
+
+async function saveTelegramCustomerPhone(
+  user: {
+    first_name?: string;
+    id: number | string;
+    last_name?: string;
+    username?: string;
+  },
+  phone: string,
+) {
+  await saveBotCustomerPhone({
+    channel: "telegram",
+    telegramUserId: user.id,
+    telegramUsername: user.username,
+    displayName: getTelegramDisplayName(user),
+    phone,
+  });
+}
+
+function getTelegramContactKeyboard() {
+  return new Keyboard()
+    .requestContact("Поделиться телефоном")
+    .oneTime()
+    .resized();
 }
 
 function getTelegramBotToken() {
@@ -65,6 +90,35 @@ export function getTelegramBot() {
     }
 
     await ctx.reply("Меню скоро появится в Mini App. Пока можно написать, что хотите заказать.");
+  });
+
+  bot.command("phone", async (ctx) => {
+    if (ctx.from) {
+      await upsertTelegramCustomer(ctx.from);
+    }
+
+    await ctx.reply("Поделитесь номером телефона, чтобы мы могли связаться по заказу.", {
+      reply_markup: getTelegramContactKeyboard(),
+    });
+  });
+
+  bot.on("message:contact", async (ctx) => {
+    const contactUserId = ctx.message.contact.user_id;
+
+    if (!ctx.from) {
+      await ctx.reply("Не удалось определить пользователя. Попробуйте отправить номер еще раз.");
+      return;
+    }
+
+    if (contactUserId && contactUserId !== ctx.from.id) {
+      await ctx.reply("Пожалуйста, отправьте свой номер через кнопку /phone.");
+      return;
+    }
+
+    await saveTelegramCustomerPhone(ctx.from, ctx.message.contact.phone_number);
+    await ctx.reply("Спасибо, сохранил ваш телефон.", {
+      reply_markup: { remove_keyboard: true },
+    });
   });
 
   bot.on("message:text", async (ctx) => {

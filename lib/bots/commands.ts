@@ -7,6 +7,10 @@ export const BOT_COMMANDS = [
     command: "menu",
     description: "Открыть меню",
   },
+  {
+    command: "phone",
+    description: "Поделиться телефоном",
+  },
 ] as const;
 
 export const TELEGRAM_BOT_COMMANDS = BOT_COMMANDS;

@@ -1,6 +1,6 @@
 import { Bot, GrammyError, HttpError } from "grammy";
 import { TELEGRAM_BOT_COMMANDS } from "@/lib/bots/commands";
-import { askDeepSeek } from "@/lib/deepseek";
+import { askDeepSeek } from "@/lib/integrations/deepseek";
 
 let telegramBot: Bot | undefined;
 

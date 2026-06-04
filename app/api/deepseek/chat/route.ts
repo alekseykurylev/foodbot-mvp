@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { askDeepSeek } from "@/lib/deepseek";
+import { askDeepSeek } from "@/lib/integrations/deepseek";
 
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => ({}))) as { text?: string };

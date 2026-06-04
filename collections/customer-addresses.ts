@@ -1,7 +1,7 @@
 import type { CollectionConfig } from "payload";
 
-import { getRelationshipID } from "@/lib/relationship";
-import { isAuthenticated } from "./access";
+import { getRelationshipID } from "@/lib/utils/relationship";
+import { isAuthenticated } from "@/lib/cms/access";
 
 export const CustomerAddresses: CollectionConfig = {
   slug: "customer-addresses",

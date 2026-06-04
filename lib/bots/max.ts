@@ -1,7 +1,7 @@
 import { Bot } from "@maxhub/max-bot-api";
 import type { Update } from "@maxhub/max-bot-api/types";
 import { MAX_BOT_COMMANDS } from "@/lib/bots/commands";
-import { askDeepSeek } from "@/lib/deepseek";
+import { askDeepSeek } from "@/lib/integrations/deepseek";
 
 type WebhookMaxBot = {
   handleUpdate(update: Update): Promise<void>;

@@ -1,6 +1,6 @@
 import type { CollectionConfig } from "payload";
 
-import { isAuthenticated } from "./access";
+import { isAuthenticated } from "@/lib/cms/access";
 
 export const Customers: CollectionConfig = {
   slug: "customers",

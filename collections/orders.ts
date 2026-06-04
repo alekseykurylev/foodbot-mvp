@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto";
 import type { CollectionConfig } from "payload";
 
-import { getRelationshipID } from "@/lib/relationship";
-import { isAuthenticated } from "./access";
+import { getRelationshipID } from "@/lib/utils/relationship";
+import { isAuthenticated } from "@/lib/cms/access";
 
 const ORDER_STATUSES = [
   { label: "AI-предложение", value: "proposal" },
@@ -54,62 +54,6 @@ export const Orders: CollectionConfig = {
     defaultColumns: ["orderNumber", "customer", "status", "totals.totalAmount", "createdAt"],
   },
   defaultSort: "-createdAt",
-  endpoints: [
-    {
-      path: "/cart/:token",
-      method: "get",
-      handler: async (req) => {
-        const token = String(req.routeParams?.token ?? "");
-
-        if (!token) {
-          return Response.json({ error: "token is required" }, { status: 400 });
-        }
-
-        const result = await req.payload.find({
-          collection: "orders",
-          depth: 2,
-          limit: 1,
-          overrideAccess: true,
-          where: {
-            publicToken: {
-              equals: token,
-            },
-          },
-        });
-
-        const order = result.docs[0];
-
-        if (!order) {
-          return Response.json({ error: "cart not found" }, { status: 404 });
-        }
-
-        if (order.expiresAt && new Date(order.expiresAt) < new Date()) {
-          return Response.json({ error: "cart expired" }, { status: 410 });
-        }
-
-        return Response.json({
-          id: order.id,
-          orderNumber: order.orderNumber,
-          status: order.status,
-          source: order.source,
-          channel: order.channel,
-          items: order.items,
-          totals: order.totals,
-          delivery: order.delivery,
-          payment: {
-            method: order.payment?.method,
-            status: order.payment?.status,
-          },
-          ai: {
-            explanation: order.ai?.explanation,
-          },
-          expiresAt: order.expiresAt,
-          createdAt: order.createdAt,
-          updatedAt: order.updatedAt,
-        });
-      },
-    },
-  ],
   hooks: {
     beforeValidate: [
       async ({ data, req }) => {

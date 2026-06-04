@@ -1,7 +1,7 @@
 "use client";
 
-import { useUserData } from "@/hooks/use-user-data";
-import { Avatar, Skeleton, UnstyledButton, Popover, Table, Code } from "@mantine/core";
+import { useUserData } from "@/lib/mini-app/use-user-data";
+import { Avatar, Skeleton, UnstyledButton, Popover, Table } from "@mantine/core";
 
 export function HeaderUser() {
   const state = useUserData();

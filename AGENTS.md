@@ -51,6 +51,13 @@ This project uses the Payload skill installed by `npx skills add https://github.
 
 - Keep the local Payload skill synced with the current upstream source: `https://github.com/payloadcms/skills/tree/main/skills/payload`.
 - Check the installed Payload packages in `package.json` before relying on version-specific APIs.
+- Prefer Payload Local API for server-side Payload operations in this project:
+  - Use `req.payload` when Payload is available from hooks, access control, validation, endpoints, or other Payload-provided request contexts.
+  - Use `getPayload({ config })` for server-side code that runs without an existing Payload `req`, including Next.js Server Components, Server Functions, route handlers, and scripts outside Next.js.
+  - Prefer Local API calls over REST/GraphQL or ad hoc database access for internal server-side reads and writes.
+  - When Local API operations must respect collection/global access control, explicitly pass `overrideAccess: false` and the current `user` or `req`; remember Local API operations skip access control by default.
+  - When operations run inside hooks, transactions, or request-scoped workflows, pass `req` through related Local API calls.
+  - Relevant docs: `https://payloadcms.com/docs/local-api/overview`, `https://payloadcms.com/docs/local-api/outside-nextjs`, `https://payloadcms.com/docs/local-api/server-functions`, `https://payloadcms.com/docs/local-api/access-control`.
 - Prefer Payload APIs and generated types over ad hoc database access.
 - When changing Payload collections, fields, or config, update generated types and migrations when needed.
 - Keep `payload-types.ts` and import map changes tied to the schema/config changes that require them.

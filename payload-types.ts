@@ -355,9 +355,13 @@ export interface Order {
    */
   publicToken: string;
   customer: number | Customer;
-  status: 'proposal' | 'cart' | 'submitted' | 'pending_payment' | 'paid' | 'completed' | 'cancelled' | 'expired';
+  status: 'cart' | 'submitted' | 'paid' | 'completed' | 'cancelled';
   source: 'ai' | 'manual' | 'admin' | 'reorder';
   channel: 'telegram' | 'max' | 'mini_app' | 'admin';
+  /**
+   * Для корзины показывает, кто последним применил изменение.
+   */
+  lastEditedBy?: ('ai' | 'customer' | 'admin') | null;
   items: {
     product: number | Product;
     productNameSnapshot: string;
@@ -708,6 +712,7 @@ export interface OrdersSelect<T extends boolean = true> {
   status?: T;
   source?: T;
   channel?: T;
+  lastEditedBy?: T;
   items?:
     | T
     | {

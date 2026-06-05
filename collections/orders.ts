@@ -5,14 +5,11 @@ import { getRelationshipID } from "@/lib/utils/relationship";
 import { isAuthenticated } from "@/lib/cms/access";
 
 const ORDER_STATUSES = [
-  { label: "AI-предложение", value: "proposal" },
   { label: "Корзина", value: "cart" },
   { label: "Отправлен", value: "submitted" },
-  { label: "Ожидает оплаты", value: "pending_payment" },
   { label: "Оплачен", value: "paid" },
   { label: "Выполнен", value: "completed" },
   { label: "Отменен", value: "cancelled" },
-  { label: "Истек", value: "expired" },
 ] as const;
 
 function createOrderNumber() {
@@ -153,7 +150,7 @@ export const Orders: CollectionConfig = {
       type: "select",
       label: "Статус",
       required: true,
-      defaultValue: "proposal",
+      defaultValue: "cart",
       options: [...ORDER_STATUSES],
     },
     {
@@ -180,6 +177,19 @@ export const Orders: CollectionConfig = {
         { label: "Mini App", value: "mini_app" },
         { label: "Админка", value: "admin" },
       ],
+    },
+    {
+      name: "lastEditedBy",
+      type: "select",
+      label: "Кто последним менял корзину",
+      options: [
+        { label: "AI", value: "ai" },
+        { label: "Клиент", value: "customer" },
+        { label: "Админ", value: "admin" },
+      ],
+      admin: {
+        description: "Для корзины показывает, кто последним применил изменение.",
+      },
     },
     {
       name: "items",
@@ -329,7 +339,8 @@ export const Orders: CollectionConfig = {
           type: "textarea",
           label: "Адрес на момент заказа",
           admin: {
-            description: "Заполняется из выбранного адреса, но хранится отдельно для истории заказа.",
+            description:
+              "Заполняется из выбранного адреса, но хранится отдельно для истории заказа.",
           },
         },
         {

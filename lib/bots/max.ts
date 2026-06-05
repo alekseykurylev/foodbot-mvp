@@ -1,6 +1,16 @@
 import { Bot, Keyboard as MaxKeyboard } from "@maxhub/max-bot-api";
 import type { Update, User } from "@maxhub/max-bot-api/types";
 import { MAX_BOT_COMMANDS } from "@/lib/bots/commands";
+import {
+  createTestOrder,
+  formatOrderSummary,
+  getMiniAppOrderURL,
+  getMiniAppURL,
+  getTestOrderCallbackData,
+  getTestOrderErrorMessage,
+  hasActiveCart,
+  parseTestOrderCallback,
+} from "@/lib/bots/test-order";
 import { saveBotCustomerPhone, upsertBotCustomer } from "@/lib/domain/customers";
 import { askDeepSeek } from "@/lib/integrations/deepseek";
 
@@ -12,7 +22,7 @@ let maxBot: Bot | undefined;
 let maxBotInitPromise: Promise<void> | undefined;
 
 async function upsertMaxCustomer(user: User) {
-  await upsertBotCustomer({
+  return upsertBotCustomer({
     channel: "max",
     maxUserId: user.user_id,
     maxFirstName: user.name,
@@ -34,6 +44,19 @@ function getMaxContactKeyboard() {
   return MaxKeyboard.inlineKeyboard([
     [MaxKeyboard.button.requestContact("Поделиться телефоном")],
   ]);
+}
+
+function getMaxTestOrderChoiceKeyboard() {
+  return MaxKeyboard.inlineKeyboard([
+    [
+      MaxKeyboard.button.callback("Добавить в заказ", getTestOrderCallbackData("append")),
+      MaxKeyboard.button.callback("Заменить заказ", getTestOrderCallbackData("replace")),
+    ],
+  ]);
+}
+
+function getMaxOpenOrderKeyboard(orderURL: string) {
+  return MaxKeyboard.inlineKeyboard([[MaxKeyboard.button.link("Открыть заказ", orderURL)]]);
 }
 
 function getMaxBotToken() {
@@ -95,6 +118,60 @@ export function getMaxBot() {
     await ctx.reply("Поделитесь номером телефона, чтобы мы могли связаться по заказу.", {
       attachments: [getMaxContactKeyboard()],
     });
+  });
+
+  bot.command("testorder", async (ctx) => {
+    const sender = ctx.message.sender;
+
+    if (!sender) {
+      await ctx.reply("Не удалось определить пользователя. Попробуйте еще раз.");
+      return;
+    }
+
+    const customer = await upsertMaxCustomer(sender);
+
+    if (await hasActiveCart(customer.id)) {
+      await ctx.reply("У вас уже есть заказ в корзине. Добавить тестовые товары или заменить заказ?", {
+        attachments: [getMaxTestOrderChoiceKeyboard()],
+      });
+      return;
+    }
+
+    try {
+      getMiniAppURL();
+
+      const order = await createTestOrder(customer.id, "replace", "max");
+
+      await ctx.reply(formatOrderSummary(order), {
+        attachments: [getMaxOpenOrderKeyboard(getMiniAppOrderURL(order))],
+      });
+    } catch (error) {
+      await ctx.reply(getTestOrderErrorMessage(error));
+    }
+  });
+
+  bot.action(/^test_order:/, async (ctx) => {
+    const mode = parseTestOrderCallback(ctx.callback.payload);
+
+    if (!mode) {
+      await ctx.answerOnCallback({ notification: "Неизвестное действие." });
+      return;
+    }
+
+    const customer = await upsertMaxCustomer(ctx.callback.user);
+
+    try {
+      getMiniAppURL();
+
+      const order = await createTestOrder(customer.id, mode, "max");
+
+      await ctx.answerOnCallback({ notification: "Готово." });
+      await ctx.reply(formatOrderSummary(order), {
+        attachments: [getMaxOpenOrderKeyboard(getMiniAppOrderURL(order))],
+      });
+    } catch (error) {
+      await ctx.answerOnCallback({ notification: getTestOrderErrorMessage(error) });
+    }
   });
 
   bot.on("message_created", async (ctx) => {

@@ -11,6 +11,10 @@ export const BOT_COMMANDS = [
     command: "phone",
     description: "Поделиться телефоном",
   },
+  {
+    command: "testorder",
+    description: "Сформировать тестовый заказ",
+  },
 ] as const;
 
 export const TELEGRAM_BOT_COMMANDS = BOT_COMMANDS;

@@ -324,22 +324,35 @@ export async function applyAiSuggestionToCart(
   mode: CartApplyMode,
   meta: Omit<CartMutationMeta, "lastEditedBy" | "source"> & { source?: CartSource },
 ) {
-  const activeCart = await findActiveCart(customerID);
   const aiMeta: CartMutationMeta = {
     ...meta,
     lastEditedBy: "ai",
     source: meta.source ?? "ai",
   };
+
+  return applyItemsToCart(customerID, items, mode, aiMeta);
+}
+
+/**
+ * Применяет набор товаров к корзине: заменяет ее целиком или добавляет товары.
+ */
+export async function applyItemsToCart(
+  customerID: CustomerID,
+  items: CartItemInput[],
+  mode: CartApplyMode,
+  meta: CartMutationMeta,
+) {
+  const activeCart = await findActiveCart(customerID);
   const suggestionItems = await buildOrderItems(items);
 
   if (!activeCart) {
-    return createCartWithItems(customerID, items, aiMeta);
+    return createCartWithItems(customerID, items, meta);
   }
 
   const nextItems =
     mode === "replace" ? suggestionItems : mergeOrderItems(activeCart.items, suggestionItems);
 
-  return updateCartItems(activeCart, nextItems, aiMeta);
+  return updateCartItems(activeCart, nextItems, meta);
 }
 
 /**

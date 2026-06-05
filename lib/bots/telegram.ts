@@ -1,5 +1,15 @@
-import { Bot, GrammyError, HttpError, Keyboard } from "grammy";
+import { Bot, GrammyError, HttpError, InlineKeyboard, Keyboard } from "grammy";
 import { TELEGRAM_BOT_COMMANDS } from "@/lib/bots/commands";
+import {
+  createTestOrder,
+  formatOrderSummary,
+  getMiniAppOrderURL,
+  getMiniAppURL,
+  getTestOrderCallbackData,
+  getTestOrderErrorMessage,
+  hasActiveCart,
+  parseTestOrderCallback,
+} from "@/lib/bots/test-order";
 import { saveBotCustomerPhone, upsertBotCustomer } from "@/lib/domain/customers";
 import { askDeepSeek } from "@/lib/integrations/deepseek";
 
@@ -15,7 +25,7 @@ async function upsertTelegramCustomer(user: {
   last_name?: string;
   username?: string;
 }) {
-  await upsertBotCustomer({
+  return upsertBotCustomer({
     channel: "telegram",
     telegramUserId: user.id,
     telegramUsername: user.username,
@@ -46,6 +56,16 @@ function getTelegramContactKeyboard() {
     .requestContact("Поделиться телефоном")
     .oneTime()
     .resized();
+}
+
+function getTelegramTestOrderChoiceKeyboard() {
+  return new InlineKeyboard()
+    .text("Добавить в заказ", getTestOrderCallbackData("append"))
+    .text("Заменить заказ", getTestOrderCallbackData("replace"));
+}
+
+function getTelegramOpenOrderKeyboard(orderURL: string) {
+  return new InlineKeyboard().webApp("Открыть заказ", orderURL);
 }
 
 function getTelegramBotToken() {
@@ -100,6 +120,59 @@ export function getTelegramBot() {
     await ctx.reply("Поделитесь номером телефона, чтобы мы могли связаться по заказу.", {
       reply_markup: getTelegramContactKeyboard(),
     });
+  });
+
+  bot.command("testorder", async (ctx) => {
+    if (!ctx.from) {
+      await ctx.reply("Не удалось определить пользователя. Попробуйте еще раз.");
+      return;
+    }
+
+    const customer = await upsertTelegramCustomer(ctx.from);
+
+    if (await hasActiveCart(customer.id)) {
+      await ctx.reply("У вас уже есть заказ в корзине. Добавить тестовые товары или заменить заказ?", {
+        reply_markup: getTelegramTestOrderChoiceKeyboard(),
+      });
+      return;
+    }
+
+    try {
+      getMiniAppURL();
+
+      const order = await createTestOrder(customer.id, "replace", "telegram");
+
+      await ctx.reply(formatOrderSummary(order), {
+        reply_markup: getTelegramOpenOrderKeyboard(getMiniAppOrderURL(order)),
+      });
+    } catch (error) {
+      await ctx.reply(getTestOrderErrorMessage(error));
+    }
+  });
+
+  bot.on("callback_query:data", async (ctx, next) => {
+    const mode = parseTestOrderCallback(ctx.callbackQuery.data);
+
+    if (!mode) {
+      await next();
+      return;
+    }
+
+    await ctx.answerCallbackQuery();
+
+    const customer = await upsertTelegramCustomer(ctx.from);
+
+    try {
+      getMiniAppURL();
+
+      const order = await createTestOrder(customer.id, mode, "telegram");
+
+      await ctx.reply(formatOrderSummary(order), {
+        reply_markup: getTelegramOpenOrderKeyboard(getMiniAppOrderURL(order)),
+      });
+    } catch (error) {
+      await ctx.reply(getTestOrderErrorMessage(error));
+    }
   });
 
   bot.on("message:contact", async (ctx) => {

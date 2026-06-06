@@ -176,6 +176,28 @@ export async function findActiveCart(customerID: CustomerID) {
 }
 
 /**
+ * Возвращает товары из активных корзин. Нужен только для временных серверных экранов без user context.
+ */
+export async function findActiveCartItems() {
+  const payload = await getPayloadLocal();
+
+  const result = await payload.find({
+    collection: "orders",
+    depth: 1,
+    limit: 100,
+    overrideAccess: true,
+    sort: "-updatedAt",
+    where: {
+      status: {
+        equals: "cart",
+      },
+    },
+  });
+
+  return result.docs.flatMap((cart) => cart.items);
+}
+
+/**
  * Создает корзину только с первым набором товаров. Пустые корзины не создаются.
  */
 export async function createCartWithItems(
@@ -353,38 +375,6 @@ export async function applyItemsToCart(
     mode === "replace" ? suggestionItems : mergeOrderItems(activeCart.items, suggestionItems);
 
   return updateCartItems(activeCart, nextItems, meta);
-}
-
-/**
- * Находит публичный заказ-корзину по токену.
- * Возвращает null, если токен неизвестен или заказ истек.
- */
-export async function findOrderByPublicToken(token: string) {
-  const payload = await getPayloadLocal();
-
-  const result = await payload.find({
-    collection: "orders",
-    depth: 2,
-    limit: 1,
-    overrideAccess: true,
-    where: {
-      publicToken: {
-        equals: token,
-      },
-    },
-  });
-
-  const order = result.docs[0] as Order | undefined;
-
-  if (!order) {
-    return null;
-  }
-
-  if (order.expiresAt && new Date(order.expiresAt) < new Date()) {
-    return null;
-  }
-
-  return order;
 }
 
 /**

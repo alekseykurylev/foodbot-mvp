@@ -346,14 +346,6 @@ export interface CustomerAddress {
  */
 export interface Order {
   id: number;
-  /**
-   * Генерируется автоматически при создании.
-   */
-  orderNumber?: string | null;
-  /**
-   * Используется в ссылке на корзину. Не должен быть предсказуемым.
-   */
-  publicToken: string;
   customer: number | Customer;
   status: 'cart' | 'submitted' | 'paid' | 'completed' | 'cancelled';
   source: 'ai' | 'manual' | 'admin' | 'reorder';
@@ -411,10 +403,6 @@ export interface Order {
       | boolean
       | null;
   };
-  /**
-   * Для AI-предложений можно ограничить срок действия ссылки.
-   */
-  expiresAt?: string | null;
   submittedAt?: string | null;
   paidAt?: string | null;
   cancelledAt?: string | null;
@@ -706,8 +694,6 @@ export interface CustomerAddressesSelect<T extends boolean = true> {
  * via the `definition` "orders_select".
  */
 export interface OrdersSelect<T extends boolean = true> {
-  orderNumber?: T;
-  publicToken?: T;
   customer?: T;
   status?: T;
   source?: T;
@@ -761,7 +747,6 @@ export interface OrdersSelect<T extends boolean = true> {
         model?: T;
         rawResponse?: T;
       };
-  expiresAt?: T;
   submittedAt?: T;
   paidAt?: T;
   cancelledAt?: T;

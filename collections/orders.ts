@@ -1,4 +1,3 @@
-import { randomUUID } from "crypto";
 import type { CollectionConfig } from "payload";
 
 import { getRelationshipID } from "@/lib/utils/relationship";
@@ -11,13 +10,6 @@ const ORDER_STATUSES = [
   { label: "Выполнен", value: "completed" },
   { label: "Отменен", value: "cancelled" },
 ] as const;
-
-function createOrderNumber() {
-  const timestamp = Date.now().toString(36).toUpperCase();
-  const suffix = randomUUID().slice(0, 8).toUpperCase();
-
-  return `FB-${timestamp}-${suffix}`;
-}
 
 function buildAddressSnapshot(address: {
   apartment?: null | string;
@@ -47,8 +39,8 @@ export const Orders: CollectionConfig = {
   },
   admin: {
     group: "CRM",
-    useAsTitle: "orderNumber",
-    defaultColumns: ["orderNumber", "customer", "status", "totals.totalAmount", "createdAt"],
+    useAsTitle: "status",
+    defaultColumns: ["customer", "status", "totals.totalAmount", "createdAt"],
   },
   defaultSort: "-createdAt",
   hooks: {
@@ -57,9 +49,6 @@ export const Orders: CollectionConfig = {
         if (!data) {
           return data;
         }
-
-        data.publicToken ??= randomUUID();
-        data.orderNumber ??= createOrderNumber();
 
         if (Array.isArray(data.items)) {
           let subtotal = 0;
@@ -116,27 +105,6 @@ export const Orders: CollectionConfig = {
     delete: isAuthenticated,
   },
   fields: [
-    {
-      name: "orderNumber",
-      type: "text",
-      label: "Номер заказа",
-      unique: true,
-      admin: {
-        description: "Генерируется автоматически при создании.",
-        readOnly: true,
-      },
-    },
-    {
-      name: "publicToken",
-      type: "text",
-      label: "Публичный токен корзины",
-      required: true,
-      unique: true,
-      admin: {
-        description: "Используется в ссылке на корзину. Не должен быть предсказуемым.",
-        readOnly: true,
-      },
-    },
     {
       name: "customer",
       type: "relationship",
@@ -453,17 +421,6 @@ export const Orders: CollectionConfig = {
           label: "Сырой ответ AI",
         },
       ],
-    },
-    {
-      name: "expiresAt",
-      type: "date",
-      label: "Действует до",
-      admin: {
-        description: "Для AI-предложений можно ограничить срок действия ссылки.",
-        date: {
-          pickerAppearance: "dayAndTime",
-        },
-      },
     },
     {
       name: "submittedAt",

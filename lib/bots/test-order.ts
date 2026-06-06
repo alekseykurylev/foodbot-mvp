@@ -140,7 +140,6 @@ export function getTestOrderErrorMessage(error: unknown) {
 }
 
 export function formatOrderSummary(order: Order) {
-  const orderTitle = order.orderNumber ? `заказ ${order.orderNumber}` : `заказ #${order.id}`;
   const lines = order.items.map((item) => `- ${item.productNameSnapshot} x ${item.quantity}`);
   const total = new Intl.NumberFormat("ru-RU", {
     currency: "RUB",
@@ -148,5 +147,5 @@ export function formatOrderSummary(order: Order) {
     style: "currency",
   }).format(order.totals.totalAmount);
 
-  return [`Сформировал тестовый ${orderTitle}.`, "", ...lines, "", `Итого: ${total}`].join("\n");
+  return ["Сформировал тестовый заказ.", "", ...lines, "", `Итого: ${total}`].join("\n");
 }

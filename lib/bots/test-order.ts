@@ -93,10 +93,37 @@ export function getMiniAppOrderURL(order: Order) {
   return url.toString();
 }
 
+export function getMaxMiniAppBotName(botUsername?: null | string) {
+  const botName = (botUsername ?? process.env.MAX_BOT_NAME)?.trim().replace(/^@/, "");
+
+  if (!botName) {
+    throw new Error("MAX_BOT_NAME is not set.");
+  }
+
+  return botName;
+}
+
+export function getMaxMiniAppOrderStartParam(order: Order) {
+  return `order_${order.id}_${order.publicToken}`;
+}
+
+export function getMaxMiniAppOrderURL(order: Order, botUsername?: null | string) {
+  const botName = getMaxMiniAppBotName(botUsername);
+  const url = new URL(`https://max.ru/${encodeURIComponent(botName)}`);
+
+  url.searchParams.set("startapp", getMaxMiniAppOrderStartParam(order));
+
+  return url.toString();
+}
+
 export function getTestOrderErrorMessage(error: unknown) {
   if (error instanceof Error) {
     if (error.message === "MINI_APP_URL is not set.") {
       return "Не смог сформировать тестовый заказ: не настроена ссылка Mini App.";
+    }
+
+    if (error.message === "MAX_BOT_NAME is not set.") {
+      return "Не смог сформировать тестовый заказ: не настроено имя MAX-бота.";
     }
 
     if (error.message === "В каталоге нет активных товаров для тестового заказа.") {

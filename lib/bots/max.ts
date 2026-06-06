@@ -4,8 +4,8 @@ import { MAX_BOT_COMMANDS } from "@/lib/bots/commands";
 import {
   createTestOrder,
   formatOrderSummary,
-  getMiniAppOrderURL,
-  getMiniAppURL,
+  getMaxMiniAppBotName,
+  getMaxMiniAppOrderURL,
   getTestOrderCallbackData,
   getTestOrderErrorMessage,
   hasActiveCart,
@@ -41,9 +41,7 @@ async function saveMaxCustomerPhone(user: User, phone: string) {
 }
 
 function getMaxContactKeyboard() {
-  return MaxKeyboard.inlineKeyboard([
-    [MaxKeyboard.button.requestContact("Поделиться телефоном")],
-  ]);
+  return MaxKeyboard.inlineKeyboard([[MaxKeyboard.button.requestContact("Поделиться телефоном")]]);
 }
 
 function getMaxTestOrderChoiceKeyboard() {
@@ -93,9 +91,7 @@ export function getMaxBot() {
       await upsertMaxCustomer(sender);
     }
 
-    await ctx.reply(
-      "Привет! Напишите, что хотите заказать, или сколько гостей нужно накормить.",
-    );
+    await ctx.reply("Привет! Напишите, что хотите заказать, или сколько гостей нужно накормить.");
   });
 
   bot.command("menu", async (ctx) => {
@@ -131,19 +127,22 @@ export function getMaxBot() {
     const customer = await upsertMaxCustomer(sender);
 
     if (await hasActiveCart(customer.id)) {
-      await ctx.reply("У вас уже есть заказ в корзине. Добавить тестовые товары или заменить заказ?", {
-        attachments: [getMaxTestOrderChoiceKeyboard()],
-      });
+      await ctx.reply(
+        "У вас уже есть заказ в корзине. Добавить тестовые товары или заменить заказ?",
+        {
+          attachments: [getMaxTestOrderChoiceKeyboard()],
+        },
+      );
       return;
     }
 
     try {
-      getMiniAppURL();
+      getMaxMiniAppBotName(bot.botInfo?.username);
 
       const order = await createTestOrder(customer.id, "replace", "max");
 
       await ctx.reply(formatOrderSummary(order), {
-        attachments: [getMaxOpenOrderKeyboard(getMiniAppOrderURL(order))],
+        attachments: [getMaxOpenOrderKeyboard(getMaxMiniAppOrderURL(order, bot.botInfo?.username))],
       });
     } catch (error) {
       await ctx.reply(getTestOrderErrorMessage(error));
@@ -161,13 +160,13 @@ export function getMaxBot() {
     const customer = await upsertMaxCustomer(ctx.callback.user);
 
     try {
-      getMiniAppURL();
+      getMaxMiniAppBotName(bot.botInfo?.username);
 
       const order = await createTestOrder(customer.id, mode, "max");
 
       await ctx.answerOnCallback({ notification: "Готово." });
       await ctx.reply(formatOrderSummary(order), {
-        attachments: [getMaxOpenOrderKeyboard(getMiniAppOrderURL(order))],
+        attachments: [getMaxOpenOrderKeyboard(getMaxMiniAppOrderURL(order, bot.botInfo?.username))],
       });
     } catch (error) {
       await ctx.answerOnCallback({ notification: getTestOrderErrorMessage(error) });

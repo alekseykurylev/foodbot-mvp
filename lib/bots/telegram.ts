@@ -3,7 +3,7 @@ import { TELEGRAM_BOT_COMMANDS } from "@/lib/bots/commands";
 import {
   createTestOrder,
   formatOrderSummary,
-  getMiniAppOrderURL,
+  getMiniAppCartURL,
   getMiniAppURL,
   getTestOrderCallbackData,
   getTestOrderErrorMessage,
@@ -143,7 +143,7 @@ export function getTelegramBot() {
       const order = await createTestOrder(customer.id, "replace", "telegram");
 
       await ctx.reply(formatOrderSummary(order), {
-        reply_markup: getTelegramOpenOrderKeyboard(getMiniAppOrderURL(order)),
+        reply_markup: getTelegramOpenOrderKeyboard(getMiniAppCartURL()),
       });
     } catch (error) {
       await ctx.reply(getTestOrderErrorMessage(error));
@@ -168,7 +168,7 @@ export function getTelegramBot() {
       const order = await createTestOrder(customer.id, mode, "telegram");
 
       await ctx.reply(formatOrderSummary(order), {
-        reply_markup: getTelegramOpenOrderKeyboard(getMiniAppOrderURL(order)),
+        reply_markup: getTelegramOpenOrderKeyboard(getMiniAppCartURL()),
       });
     } catch (error) {
       await ctx.reply(getTestOrderErrorMessage(error));

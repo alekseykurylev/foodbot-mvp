@@ -5,7 +5,7 @@ import {
   createTestOrder,
   formatOrderSummary,
   getMaxMiniAppBotName,
-  getMaxMiniAppOrderURL,
+  getMaxMiniAppCartURL,
   getTestOrderCallbackData,
   getTestOrderErrorMessage,
   hasActiveCart,
@@ -142,7 +142,7 @@ export function getMaxBot() {
       const order = await createTestOrder(customer.id, "replace", "max");
 
       await ctx.reply(formatOrderSummary(order), {
-        attachments: [getMaxOpenOrderKeyboard(getMaxMiniAppOrderURL(order, bot.botInfo?.username))],
+        attachments: [getMaxOpenOrderKeyboard(getMaxMiniAppCartURL(bot.botInfo?.username))],
       });
     } catch (error) {
       await ctx.reply(getTestOrderErrorMessage(error));
@@ -166,7 +166,7 @@ export function getMaxBot() {
 
       await ctx.answerOnCallback({ notification: "Готово." });
       await ctx.reply(formatOrderSummary(order), {
-        attachments: [getMaxOpenOrderKeyboard(getMaxMiniAppOrderURL(order, bot.botInfo?.username))],
+        attachments: [getMaxOpenOrderKeyboard(getMaxMiniAppCartURL(bot.botInfo?.username))],
       });
     } catch (error) {
       await ctx.answerOnCallback({ notification: getTestOrderErrorMessage(error) });

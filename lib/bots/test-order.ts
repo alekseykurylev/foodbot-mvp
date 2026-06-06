@@ -84,11 +84,16 @@ export function getMiniAppURL() {
   return new URL(miniAppURL);
 }
 
-export function getMiniAppOrderURL(order: Order) {
+export function getMiniAppCartURL() {
   const url = getMiniAppURL();
+  const pathname = url.pathname.replace(/\/$/, "");
 
-  url.searchParams.set("order", order.publicToken);
-  url.searchParams.set("orderId", String(order.id));
+  if (!pathname.endsWith("/cart")) {
+    url.pathname = `${pathname}/cart`;
+  }
+
+  url.search = "";
+  url.hash = "";
 
   return url.toString();
 }
@@ -103,15 +108,15 @@ export function getMaxMiniAppBotName(botUsername?: null | string) {
   return botName;
 }
 
-export function getMaxMiniAppOrderStartParam(order: Order) {
-  return `order_${order.id}_${order.publicToken}`;
+export function getMaxMiniAppCartStartParam() {
+  return "cart";
 }
 
-export function getMaxMiniAppOrderURL(order: Order, botUsername?: null | string) {
+export function getMaxMiniAppCartURL(botUsername?: null | string) {
   const botName = getMaxMiniAppBotName(botUsername);
   const url = new URL(`https://max.ru/${encodeURIComponent(botName)}`);
 
-  url.searchParams.set("startapp", getMaxMiniAppOrderStartParam(order));
+  url.searchParams.set("startapp", getMaxMiniAppCartStartParam());
 
   return url.toString();
 }

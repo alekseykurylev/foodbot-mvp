@@ -26,10 +26,6 @@ type BotCustomerPhoneInput = BotCustomerInput & {
   phone: string;
 };
 
-function normalizeBotUserID(id: number | string) {
-  return String(id);
-}
-
 function getDisplayName(input: BotCustomerInput) {
   const name = input.displayName?.trim();
 
@@ -38,21 +34,21 @@ function getDisplayName(input: BotCustomerInput) {
   }
 
   return input.channel === "telegram"
-    ? `Telegram ${normalizeBotUserID(input.telegramUserId)}`
-    : `MAX ${normalizeBotUserID(input.maxUserId)}`;
+    ? `Telegram ${String(input.telegramUserId)}`
+    : `MAX ${String(input.maxUserId)}`;
 }
 
 function getCustomerLookup(input: BotCustomerInput) {
   if (input.channel === "telegram") {
     return {
       field: "telegramUserId",
-      value: normalizeBotUserID(input.telegramUserId),
+      value: String(input.telegramUserId),
     } as const;
   }
 
   return {
     field: "maxUserId",
-    value: normalizeBotUserID(input.maxUserId),
+    value: String(input.maxUserId),
   } as const;
 }
 
@@ -62,7 +58,7 @@ function buildCustomerCreateData(input: BotCustomerInput) {
   if (input.channel === "telegram") {
     return {
       displayName,
-      telegramUserId: normalizeBotUserID(input.telegramUserId),
+      telegramUserId: String(input.telegramUserId),
       telegramUsername: input.telegramUsername ?? undefined,
       status: "new" as const,
       marketing: {
@@ -74,7 +70,7 @@ function buildCustomerCreateData(input: BotCustomerInput) {
 
   return {
     displayName,
-    maxUserId: normalizeBotUserID(input.maxUserId),
+    maxUserId: String(input.maxUserId),
     maxFirstName: input.maxFirstName ?? displayName,
     maxLastName: input.maxLastName ?? undefined,
     status: "new" as const,

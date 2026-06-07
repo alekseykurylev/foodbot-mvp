@@ -9,8 +9,7 @@ import {
   updateCartItemQuantity,
 } from "@/lib/domain/orders";
 import { upsertBotCustomer } from "@/lib/domain/customers";
-import { verifyMaxInitData } from "@/lib/mini-app/max";
-import { verifyTelegramInitData } from "@/lib/mini-app/telegram";
+import { verifyMiniAppSession } from "@/lib/mini-app/verify/session";
 import type { MiniAppProvider, MiniAppSession } from "@/lib/mini-app/types";
 import type { Order } from "@/payload-types";
 
@@ -38,26 +37,6 @@ type CartRequestItem = {
 
 function getDisplayName(session: MiniAppSession) {
   return [session.user.firstName, session.user.lastName].filter(Boolean).join(" ");
-}
-
-function verifyMiniAppSession(provider: MiniAppProvider, initData: string) {
-  if (provider === "telegram") {
-    const token = process.env.TELEGRAM_BOT_TOKEN;
-
-    if (!token) {
-      throw new Error("TELEGRAM_BOT_TOKEN is not set");
-    }
-
-    return verifyTelegramInitData(initData, token);
-  }
-
-  const token = process.env.MAX_BOT_TOKEN;
-
-  if (!token) {
-    throw new Error("MAX_BOT_TOKEN is not set");
-  }
-
-  return verifyMaxInitData(initData, token);
 }
 
 async function upsertMiniAppCustomer(session: MiniAppSession) {

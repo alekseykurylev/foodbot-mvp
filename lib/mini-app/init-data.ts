@@ -2,6 +2,8 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 type InitDataParams = Record<string, string>;
 
+const MAX_INIT_DATA_AGE_SECONDS = 60 * 60;
+
 export function parseJsonParam<T>(value: string | undefined, name: string) {
   if (!value) {
     throw new Error(`${name} is missing`);
@@ -52,6 +54,28 @@ function timingSafeHexEqual(left: string, right: string) {
   return timingSafeEqual(leftBuffer, rightBuffer);
 }
 
+function verifyAuthDate(authDate: string | undefined) {
+  if (!authDate) {
+    throw new Error("initData auth_date is missing");
+  }
+
+  const timestamp = Number(authDate);
+
+  if (!Number.isInteger(timestamp)) {
+    throw new Error("initData auth_date is invalid");
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+
+  if (timestamp > now) {
+    throw new Error("initData auth_date is in the future");
+  }
+
+  if (now - timestamp > MAX_INIT_DATA_AGE_SECONDS) {
+    throw new Error("initData auth_date is expired");
+  }
+}
+
 export function verifyInitData(initData: string, botToken: string) {
   const params = parseInitData(initData);
   const hash = params.hash;
@@ -66,6 +90,8 @@ export function verifyInitData(initData: string, botToken: string) {
   if (!timingSafeHexEqual(expectedHash, hash)) {
     throw new Error("initData signature is invalid");
   }
+
+  verifyAuthDate(params.auth_date);
 
   return params;
 }

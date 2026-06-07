@@ -176,37 +176,14 @@ export async function findActiveCart(customerID: CustomerID) {
 }
 
 /**
- * Возвращает товары из активных корзин. Нужен только для временных серверных экранов без user context.
- */
-export async function findActiveCartItems() {
-  const payload = await getPayloadLocal();
-
-  const result = await payload.find({
-    collection: "orders",
-    depth: 1,
-    limit: 100,
-    overrideAccess: true,
-    sort: "-updatedAt",
-    where: {
-      status: {
-        equals: "cart",
-      },
-    },
-  });
-
-  return result.docs.flatMap((cart) => cart.items);
-}
-
-/**
  * Создает корзину только с первым набором товаров. Пустые корзины не создаются.
  */
-export async function createCartWithItems(
+async function createCart(
   customerID: CustomerID,
-  items: CartItemInput[],
+  orderItems: OrderItem[],
   meta: CartMutationMeta,
 ) {
   const payload = await getPayloadLocal();
-  const orderItems = await buildOrderItems(items);
 
   try {
     const data = {
@@ -236,34 +213,20 @@ export async function createCartWithItems(
   }
 }
 
-/**
- * Возвращает активную корзину или создает ее с первым товаром.
- */
-export async function getOrCreateCartWithItems(
-  customerID: CustomerID,
-  items: CartItemInput[],
-  meta: CartMutationMeta,
-) {
-  const activeCart = await findActiveCart(customerID);
-  const orderItems = await buildOrderItems(items);
-
-  if (activeCart) {
-    return updateCartItems(activeCart, mergeOrderItems(activeCart.items, orderItems), meta);
-  }
-
-  return createCartWithItems(customerID, items, meta);
-}
-
 async function updateCartItems(cart: Order, items: OrderItem[], meta: CartMutationMeta) {
   if (cart.status !== "cart") {
     throw new Error("Only cart orders can be changed by customer or AI.");
   }
 
-  if (items.length === 0) {
-    return deleteOrder(cart.id);
-  }
-
   const payload = await getPayloadLocal();
+
+  if (items.length === 0) {
+    return payload.delete({
+      collection: "orders",
+      id: cart.id,
+      overrideAccess: true,
+    });
+  }
 
   return (await payload.update({
     collection: "orders",
@@ -286,7 +249,14 @@ export async function addCartItem(
   item: CartItemInput,
   meta: CartMutationMeta,
 ) {
-  return getOrCreateCartWithItems(customerID, [item], meta);
+  const activeCart = await findActiveCart(customerID);
+  const orderItems = await buildOrderItems([item]);
+
+  if (activeCart) {
+    return updateCartItems(activeCart, mergeOrderItems(activeCart.items, orderItems), meta);
+  }
+
+  return createCart(customerID, orderItems, meta);
 }
 
 /**
@@ -368,135 +338,13 @@ export async function applyItemsToCart(
   const suggestionItems = await buildOrderItems(items);
 
   if (!activeCart) {
-    return createCartWithItems(customerID, items, meta);
+    return createCart(customerID, suggestionItems, meta);
   }
 
   const nextItems =
     mode === "replace" ? suggestionItems : mergeOrderItems(activeCart.items, suggestionItems);
 
   return updateCartItems(activeCart, nextItems, meta);
-}
-
-/**
- * Обновляет только workflow-статус заказа.
- */
-export async function updateOrderStatus(id: Order["id"], status: Order["status"]) {
-  const payload = await getPayloadLocal();
-
-  return payload.update({
-    collection: "orders",
-    id,
-    data: {
-      status,
-    },
-    overrideAccess: true,
-  });
-}
-
-/**
- * Заменяет блок доставки в заказе.
- */
-export async function updateOrderDelivery(
-  id: Order["id"],
-  delivery: Partial<NonNullable<Order["delivery"]>>,
-) {
-  const payload = await getPayloadLocal();
-
-  return payload.update({
-    collection: "orders",
-    id,
-    data: {
-      delivery,
-    },
-    overrideAccess: true,
-  });
-}
-
-/**
- * Заменяет блок оплаты в заказе.
- */
-export async function updateOrderPayment(
-  id: Order["id"],
-  payment: Partial<NonNullable<Order["payment"]>>,
-) {
-  const payload = await getPayloadLocal();
-
-  return payload.update({
-    collection: "orders",
-    id,
-    data: {
-      payment,
-    },
-    overrideAccess: true,
-  });
-}
-
-/**
- * Отмечает заказ как отмененный и фиксирует время отмены.
- */
-export async function cancelOrder(id: Order["id"]) {
-  const payload = await getPayloadLocal();
-
-  return payload.update({
-    collection: "orders",
-    id,
-    data: {
-      cancelledAt: new Date().toISOString(),
-      status: "cancelled",
-    },
-    overrideAccess: true,
-  });
-}
-
-/**
- * Отмечает заказ и оплату как оплаченные.
- */
-export async function markOrderAsPaid(id: Order["id"]) {
-  const payload = await getPayloadLocal();
-
-  return payload.update({
-    collection: "orders",
-    id,
-    data: {
-      paidAt: new Date().toISOString(),
-      payment: {
-        status: "paid",
-      },
-      status: "paid",
-    },
-    overrideAccess: true,
-  });
-}
-
-/**
- * Отмечает корзину как отправленный заказ и фиксирует время отправки.
- */
-export async function submitOrder(id: Order["id"], input: SubmitOrderInput = {}) {
-  const payload = await getPayloadLocal();
-  const order = (await payload.findByID({
-    collection: "orders",
-    id,
-    depth: 0,
-    overrideAccess: true,
-  })) as Order;
-
-  if (order.status !== "cart") {
-    throw new Error("Only cart orders can be submitted.");
-  }
-
-  const data = {
-    ...(input.delivery ? { delivery: input.delivery } : {}),
-    ...(input.payment ? { payment: input.payment } : {}),
-    status: "submitted" as const,
-    submittedAt: new Date().toISOString(),
-  };
-
-  return payload.update({
-    collection: "orders",
-    id,
-    data,
-    overrideAccess: true,
-  });
 }
 
 /**
@@ -509,35 +357,27 @@ export async function submitActiveCart(customerID: CustomerID, input: SubmitOrde
     throw new Error("Active cart was not found.");
   }
 
-  return submitOrder(activeCart.id, input);
-}
-
-/**
- * Удаляет заказ по ID.
- */
-export async function deleteOrder(id: Order["id"]) {
   const payload = await getPayloadLocal();
-
-  return payload.delete({
+  const order = (await payload.findByID({
     collection: "orders",
-    id,
+    id: activeCart.id,
+    depth: 0,
     overrideAccess: true,
-  });
-}
+  })) as Order;
 
-/**
- * Считает все заказы, связанные с клиентом.
- */
-export async function countCustomerOrders(customerID: Order["customer"]) {
-  const payload = await getPayloadLocal();
+  if (order.status !== "cart") {
+    throw new Error("Only cart orders can be submitted.");
+  }
 
-  return payload.count({
+  return payload.update({
     collection: "orders",
-    overrideAccess: true,
-    where: {
-      customer: {
-        equals: getCustomerID(customerID),
-      },
+    id: activeCart.id,
+    data: {
+      ...(input.delivery ? { delivery: input.delivery } : {}),
+      ...(input.payment ? { payment: input.payment } : {}),
+      status: "submitted",
+      submittedAt: new Date().toISOString(),
     },
+    overrideAccess: true,
   });
 }

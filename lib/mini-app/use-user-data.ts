@@ -1,24 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getMiniAppLaunchData } from "@/lib/mini-app/launch-data";
 import type { MiniAppSession } from "@/lib/mini-app/types";
-
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp?: {
-        initData?: string;
-        initDataUnsafe?: unknown;
-        ready?: () => void;
-      };
-    };
-    WebApp?: {
-      initData?: string;
-      initDataUnsafe?: unknown;
-      ready?: () => void;
-    };
-  }
-}
 
 export type UserDataState =
   | { status: "loading" }
@@ -56,36 +40,11 @@ const mockRaw = {
   is_dev_mock: true,
 };
 
-function getLaunchData() {
-  const telegramWebApp = window.Telegram?.WebApp;
-  const maxWebApp = window.WebApp;
-
-  if (telegramWebApp?.initData) {
-    telegramWebApp.ready?.();
-    return {
-      provider: "telegram" as const,
-      initData: telegramWebApp.initData,
-      raw: telegramWebApp.initDataUnsafe,
-    };
-  }
-
-  if (maxWebApp?.initData) {
-    maxWebApp.ready?.();
-    return {
-      provider: "max" as const,
-      initData: maxWebApp.initData,
-      raw: maxWebApp.initDataUnsafe,
-    };
-  }
-
-  return undefined;
-}
-
 export function useUserData(): UserDataState {
   const [state, setState] = useState<UserDataState>({ status: "loading" });
 
   useEffect(() => {
-    const launchData = getLaunchData();
+    const launchData = getMiniAppLaunchData();
 
     if (!launchData) {
       if (process.env.NODE_ENV === "development") {

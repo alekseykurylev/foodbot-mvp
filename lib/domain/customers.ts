@@ -4,26 +4,26 @@ import { getPayloadLocal } from "@/lib/cms/payload-local";
 import type { Customer } from "@/payload-types";
 
 type BaseBotCustomerInput = {
-  displayName?: null | string;
+  displayName?: Customer["displayName"] | null;
 };
 
 type TelegramCustomerInput = BaseBotCustomerInput & {
   channel: "telegram";
-  telegramUserId: number | string;
-  telegramUsername?: null | string;
+  telegramUserId: NonNullable<Customer["telegramUserId"]> | number;
+  telegramUsername?: Customer["telegramUsername"];
 };
 
 type MaxCustomerInput = BaseBotCustomerInput & {
   channel: "max";
-  maxFirstName?: null | string;
-  maxLastName?: null | string;
-  maxUserId: number | string;
+  maxFirstName?: Customer["maxFirstName"];
+  maxLastName?: Customer["maxLastName"];
+  maxUserId: NonNullable<Customer["maxUserId"]> | number;
 };
 
 export type BotCustomerInput = MaxCustomerInput | TelegramCustomerInput;
 
 type BotCustomerPhoneInput = BotCustomerInput & {
-  phone: string;
+  phone: NonNullable<Customer["phone"]>;
 };
 
 function getDisplayName(input: BotCustomerInput) {
@@ -36,20 +36,6 @@ function getDisplayName(input: BotCustomerInput) {
   return input.channel === "telegram"
     ? `Telegram ${String(input.telegramUserId)}`
     : `MAX ${String(input.maxUserId)}`;
-}
-
-function getCustomerLookup(input: BotCustomerInput) {
-  if (input.channel === "telegram") {
-    return {
-      field: "telegramUserId",
-      value: String(input.telegramUserId),
-    } as const;
-  }
-
-  return {
-    field: "maxUserId",
-    value: String(input.maxUserId),
-  } as const;
 }
 
 function buildCustomerCreateData(input: BotCustomerInput) {
@@ -123,24 +109,34 @@ function buildCustomerUpdateData(input: BotCustomerInput, customer: Customer) {
 
 async function findCustomerByBotUser(input: BotCustomerInput) {
   const payload = await getPayloadLocal();
-  const { field, value } = getCustomerLookup(input);
+
+  if (input.channel === "telegram") {
+    const result = await payload.find({
+      collection: "customers",
+      limit: 1,
+      overrideAccess: true,
+      where: {
+        telegramUserId: {
+          equals: String(input.telegramUserId),
+        },
+      },
+    });
+
+    return result.docs[0] as Customer | undefined;
+  }
 
   const result = await payload.find({
     collection: "customers",
     limit: 1,
     overrideAccess: true,
     where: {
-      [field]: {
-        equals: value,
+      maxUserId: {
+        equals: String(input.maxUserId),
       },
     },
   });
 
   return result.docs[0] as Customer | undefined;
-}
-
-function normalizePhone(phone: string) {
-  return phone.trim();
 }
 
 /**
@@ -189,7 +185,7 @@ export async function saveBotCustomerPhone(input: BotCustomerPhoneInput) {
     collection: "customers",
     id: customer.id,
     data: {
-      phone: normalizePhone(input.phone),
+      phone: input.phone.trim(),
     },
     overrideAccess: true,
   });

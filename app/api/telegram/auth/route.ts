@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyTelegramInitData } from "@/lib/mini-app/telegram";
+import { verifyTelegramInitData } from "@/lib/mini-app/verify/telegram";
 
 export async function POST(request: Request) {
   const token = process.env.TELEGRAM_BOT_TOKEN;

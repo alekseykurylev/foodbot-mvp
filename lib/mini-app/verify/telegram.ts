@@ -1,4 +1,4 @@
-import { parseJsonParam, verifyInitData } from "@/lib/mini-app/init-data";
+import { parseJsonParam, verifyInitData } from "@/lib/mini-app/verify/init-data";
 import type { MiniAppSession } from "@/lib/mini-app/types";
 
 type TelegramUser = {

@@ -5,17 +5,17 @@ import { Alert, Loader, Stack, Table, Text } from "@mantine/core";
 import { useCart } from "@/lib/mini-app/use-cart";
 
 export function Cart() {
-  const { data, error, isLoading } = useCart();
+  const { data, isError, isLoading } = useCart();
 
   if (isLoading) {
     return <Loader size="sm" />;
   }
 
-  if (error) {
-    return <Alert color="red">{error.message}</Alert>;
+  if (isError) {
+    return <Alert color="red">Ошибка</Alert>;
   }
 
-  if (!data?.cart || data.cart.items.length === 0) {
+  if (!data || data.items.length === 0) {
     return <Text c="dimmed">Корзина пуста.</Text>;
   }
 
@@ -31,7 +31,7 @@ export function Cart() {
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
-          {data.cart.items.map((item) => (
+          {data.items.map((item) => (
             <Table.Tr key={item.id ?? item.productNameSnapshot}>
               <Table.Td>{item.productNameSnapshot}</Table.Td>
               <Table.Td>{item.quantity}</Table.Td>
@@ -42,7 +42,7 @@ export function Cart() {
         </Table.Tbody>
       </Table>
 
-      <Text fw={600}>Итого: {data.cart.totals.totalAmount} ₽</Text>
+      <Text fw={600}>Итого: {data.totals.totalAmount} ₽</Text>
     </Stack>
   );
 }

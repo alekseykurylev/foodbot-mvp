@@ -1,6 +1,7 @@
-import { Bot, GrammyError, HttpError, Keyboard } from "grammy";
+import { Bot, GrammyError, HttpError, InlineKeyboard, Keyboard } from "grammy";
 import { BOT_COMMANDS } from "@/lib/bots/commands";
 import { getBotToken } from "@/lib/bots/shared";
+import { getTelegramMiniAppUrl } from "@/lib/bots/urls";
 import { BOT_TEXTS } from "@/lib/bots/texts";
 import { saveBotCustomerPhone, upsertBotCustomer } from "@/lib/domain/customers";
 import { askDeepSeek } from "@/lib/integrations/deepseek";
@@ -72,7 +73,11 @@ export function getTelegramBot() {
       await upsertCustomer(ctx.from);
     }
 
-    await ctx.reply(BOT_TEXTS.menu);
+    const url = getTelegramMiniAppUrl();
+
+    await ctx.reply(BOT_TEXTS.menu, {
+      reply_markup: new InlineKeyboard().webApp(BOT_TEXTS.menuButton, url),
+    });
   });
 
   instance.command("phone", async (ctx) => {

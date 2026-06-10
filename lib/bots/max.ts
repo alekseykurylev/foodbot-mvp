@@ -2,6 +2,7 @@ import { Bot, Keyboard as MaxKeyboard } from "@maxhub/max-bot-api";
 import type { Update, User } from "@maxhub/max-bot-api/types";
 import { MAX_BOT_COMMANDS } from "@/lib/bots/commands";
 import { getBotToken } from "@/lib/bots/shared";
+import { getMaxMiniAppUrl } from "@/lib/bots/urls";
 import { BOT_TEXTS } from "@/lib/bots/texts";
 import { saveBotCustomerPhone, upsertBotCustomer } from "@/lib/domain/customers";
 import { askDeepSeek } from "@/lib/integrations/deepseek";
@@ -72,7 +73,13 @@ export function getMaxBot() {
       await upsertMaxCustomer(sender);
     }
 
-    await ctx.reply(BOT_TEXTS.menu);
+    const url = getMaxMiniAppUrl();
+
+    await ctx.reply(BOT_TEXTS.menu, {
+      attachments: [
+        MaxKeyboard.inlineKeyboard([[MaxKeyboard.button.link(BOT_TEXTS.menuButton, url)]]),
+      ],
+    });
   });
 
   bot.command("phone", async (ctx) => {

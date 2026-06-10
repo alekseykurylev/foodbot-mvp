@@ -1,25 +1,14 @@
 import { Bot, Keyboard as MaxKeyboard } from "@maxhub/max-bot-api";
 import type { Update, User } from "@maxhub/max-bot-api/types";
 import { MAX_BOT_COMMANDS } from "@/lib/bots/commands";
-import {
-  createTestOrder,
-  formatOrderSummary,
-  getMaxMiniAppBotName,
-  getMaxMiniAppCartURL,
-  getTestOrderCallbackData,
-  getTestOrderErrorMessage,
-  hasActiveCart,
-  parseTestOrderCallback,
-} from "@/lib/bots/test-order";
+import { getBotToken } from "@/lib/bots/shared";
+import { BOT_TEXTS } from "@/lib/bots/texts";
 import { saveBotCustomerPhone, upsertBotCustomer } from "@/lib/domain/customers";
 import { askDeepSeek } from "@/lib/integrations/deepseek";
 
-type WebhookMaxBot = {
-  handleUpdate(update: Update): Promise<void>;
-};
-
-let maxBot: Bot | undefined;
-let maxBotInitPromise: Promise<void> | undefined;
+// ---------------------------------------------------------------------------
+// Хелперы
+// ---------------------------------------------------------------------------
 
 async function upsertMaxCustomer(user: User) {
   return upsertBotCustomer({
@@ -40,48 +29,30 @@ async function saveMaxCustomerPhone(user: User, phone: string) {
   });
 }
 
-function getMaxContactKeyboard() {
-  return MaxKeyboard.inlineKeyboard([[MaxKeyboard.button.requestContact("Поделиться телефоном")]]);
+function getContactKeyboard() {
+  return MaxKeyboard.inlineKeyboard([[MaxKeyboard.button.requestContact(BOT_TEXTS.phoneButton)]]);
 }
 
-function getMaxTestOrderChoiceKeyboard() {
-  return MaxKeyboard.inlineKeyboard([
-    [
-      MaxKeyboard.button.callback("Добавить в заказ", getTestOrderCallbackData("append")),
-      MaxKeyboard.button.callback("Заменить заказ", getTestOrderCallbackData("replace")),
-    ],
-  ]);
-}
+// ---------------------------------------------------------------------------
+// Фабрика бота (синглтон)
+// ---------------------------------------------------------------------------
 
-function getMaxOpenOrderKeyboard(orderURL: string) {
-  return MaxKeyboard.inlineKeyboard([[MaxKeyboard.button.link("Открыть заказ", orderURL)]]);
-}
-
-function getMaxBotToken() {
-  const token = process.env.MAX_BOT_TOKEN;
-
-  if (!token) {
-    throw new Error("MAX_BOT_TOKEN is not set");
-  }
-
-  return token;
-}
+let bot: Bot | undefined;
+let initPromise: Promise<void> | undefined;
 
 export function getMaxBot() {
-  if (maxBot) {
-    return maxBot;
+  if (bot) {
+    return bot;
   }
 
-  const bot = new Bot(getMaxBotToken());
+  bot = new Bot(getBotToken("MAX_BOT_TOKEN"));
 
   bot.on("bot_started", async (ctx) => {
     if (ctx.user) {
       await upsertMaxCustomer(ctx.user);
     }
 
-    await ctx.reply(
-      "Привет! Я помогу собрать заказ. Скоро здесь будет меню, корзина и подбор еды на компанию.",
-    );
+    await ctx.reply(BOT_TEXTS.start);
   });
 
   bot.command("start", async (ctx) => {
@@ -91,7 +62,7 @@ export function getMaxBot() {
       await upsertMaxCustomer(sender);
     }
 
-    await ctx.reply("Привет! Напишите, что хотите заказать, или сколько гостей нужно накормить.");
+    await ctx.reply(BOT_TEXTS.start);
   });
 
   bot.command("menu", async (ctx) => {
@@ -101,7 +72,7 @@ export function getMaxBot() {
       await upsertMaxCustomer(sender);
     }
 
-    await ctx.reply("Меню скоро появится в Mini App. Пока можно написать заказ текстом.");
+    await ctx.reply(BOT_TEXTS.menu);
   });
 
   bot.command("phone", async (ctx) => {
@@ -111,66 +82,9 @@ export function getMaxBot() {
       await upsertMaxCustomer(sender);
     }
 
-    await ctx.reply("Поделитесь номером телефона, чтобы мы могли связаться по заказу.", {
-      attachments: [getMaxContactKeyboard()],
+    await ctx.reply(BOT_TEXTS.phoneRequest, {
+      attachments: [getContactKeyboard()],
     });
-  });
-
-  bot.command("testorder", async (ctx) => {
-    const sender = ctx.message.sender;
-
-    if (!sender) {
-      await ctx.reply("Не удалось определить пользователя. Попробуйте еще раз.");
-      return;
-    }
-
-    const customer = await upsertMaxCustomer(sender);
-
-    if (await hasActiveCart(customer.id)) {
-      await ctx.reply(
-        "У вас уже есть заказ в корзине. Добавить тестовые товары или заменить заказ?",
-        {
-          attachments: [getMaxTestOrderChoiceKeyboard()],
-        },
-      );
-      return;
-    }
-
-    try {
-      getMaxMiniAppBotName(bot.botInfo?.username);
-
-      const order = await createTestOrder(customer.id, "replace", "max");
-
-      await ctx.reply(formatOrderSummary(order), {
-        attachments: [getMaxOpenOrderKeyboard(getMaxMiniAppCartURL(bot.botInfo?.username))],
-      });
-    } catch (error) {
-      await ctx.reply(getTestOrderErrorMessage(error));
-    }
-  });
-
-  bot.action(/^test_order:/, async (ctx) => {
-    const mode = parseTestOrderCallback(ctx.callback.payload);
-
-    if (!mode) {
-      await ctx.answerOnCallback({ notification: "Неизвестное действие." });
-      return;
-    }
-
-    const customer = await upsertMaxCustomer(ctx.callback.user);
-
-    try {
-      getMaxMiniAppBotName(bot.botInfo?.username);
-
-      const order = await createTestOrder(customer.id, mode, "max");
-
-      await ctx.answerOnCallback({ notification: "Готово." });
-      await ctx.reply(formatOrderSummary(order), {
-        attachments: [getMaxOpenOrderKeyboard(getMaxMiniAppCartURL(bot.botInfo?.username))],
-      });
-    } catch (error) {
-      await ctx.answerOnCallback({ notification: getTestOrderErrorMessage(error) });
-    }
   });
 
   bot.on("message_created", async (ctx) => {
@@ -178,19 +92,21 @@ export function getMaxBot() {
     const sender = ctx.message.sender;
     const phone = ctx.contactInfo?.tel;
 
+    // Контакт
     if (phone) {
       if (!sender) {
-        await ctx.reply("Не удалось определить пользователя. Попробуйте отправить номер еще раз.");
+        await ctx.reply(BOT_TEXTS.userNotIdentified);
         return;
       }
 
       await saveMaxCustomerPhone(sender, phone);
-      await ctx.reply("Спасибо, сохранил ваш телефон.");
+      await ctx.reply(BOT_TEXTS.phoneSaved);
       return;
     }
 
+    // Текстовое сообщение
     if (!text) {
-      await ctx.reply("Пока я понимаю только текстовые сообщения.");
+      await ctx.reply(BOT_TEXTS.nonText);
       return;
     }
 
@@ -205,21 +121,26 @@ export function getMaxBot() {
     console.error(`MAX bot error while handling ${ctx.update.update_type}:`, err);
   });
 
-  maxBot = bot;
-
   return bot;
 }
 
-export async function handleMaxUpdate(update: Update) {
-  const bot = getMaxBot();
-  const webhookBot = bot as unknown as WebhookMaxBot;
+// ---------------------------------------------------------------------------
+// Обработчик вебхуков
+// ---------------------------------------------------------------------------
 
-  if (!bot.botInfo) {
-    maxBotInitPromise ??= bot.api.setMyCommands(MAX_BOT_COMMANDS).then((botInfo) => {
-      bot.botInfo = botInfo;
+type WebhookMaxBot = { handleUpdate(update: Update): Promise<void> };
+
+export async function handleMaxUpdate(update: Update) {
+  const instance = getMaxBot();
+  const webhook = instance as unknown as WebhookMaxBot;
+
+  // Регистрируем команды один раз
+  if (!instance.botInfo) {
+    initPromise ??= instance.api.setMyCommands(MAX_BOT_COMMANDS).then((botInfo) => {
+      instance.botInfo = botInfo;
     });
-    await maxBotInitPromise;
+    await initPromise;
   }
 
-  await webhookBot.handleUpdate(update);
+  await webhook.handleUpdate(update);
 }

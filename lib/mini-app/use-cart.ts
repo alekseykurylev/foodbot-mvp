@@ -2,36 +2,38 @@
 
 import useSWR from "swr";
 
-import { getMiniAppLaunchData, type MiniAppLaunchData } from "@/lib/mini-app/launch-data";
+import { getMiniAppLaunchData } from "@/lib/mini-app/launch-data";
 import type { Order } from "@/payload-types";
 
-async function fetchCart(url: string, launchData: MiniAppLaunchData) {
-  const response = await fetch(url, {
+type CartApiResponse = { cart: Order | null };
+
+async function fetchCart(provider: string, initData: string): Promise<Order | null> {
+  const response = await fetch("/api/cart", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      provider: launchData.provider,
-      initData: launchData.initData,
-    }),
+    body: JSON.stringify({ provider, initData }),
   });
 
   if (!response.ok) {
     throw new Error("Не удалось получить корзину.");
   }
 
-  return (await response.json()) as Order;
+  const json = (await response.json()) as CartApiResponse;
+  return json.cart;
 }
 
 export function useCart() {
   const launchData = getMiniAppLaunchData();
-  const { data, error, isLoading } = useSWR(
-    launchData ? ["/api/cart", launchData] : null,
-    ([url, launchData]) => fetchCart(url, launchData),
+
+  const { data, error, isLoading, mutate } = useSWR(
+    launchData ? ["/api/cart", launchData.provider, launchData.initData] : null,
+    ([, provider, initData]) => fetchCart(provider, initData),
   );
 
   return {
     data,
     isLoading,
-    isError: error,
+    isError: !!error,
+    mutate,
   };
 }

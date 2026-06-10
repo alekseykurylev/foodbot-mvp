@@ -85,3 +85,8 @@ This project uses the Payload skill installed by `npx skills add https://github.
 - Do not rename environment variables without updating all references and documentation.
 - Do not edit generated files unless the change is required by the task.
 - Do not remove migrations, lockfiles, or config files unless explicitly requested.
+
+# Communication
+
+Always answer the user in Russian unless the user explicitly asks for another language.
+Use English only for code, identifiers, commands, logs, API names, and exact error messages.

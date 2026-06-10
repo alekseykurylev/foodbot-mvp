@@ -107,7 +107,7 @@ function buildCustomerUpdateData(input: BotCustomerInput, customer: Customer) {
   };
 }
 
-async function findCustomerByBotUser(input: BotCustomerInput) {
+export async function findCustomerByBotUser(input: BotCustomerInput) {
   const payload = await getPayloadLocal();
 
   if (input.channel === "telegram") {

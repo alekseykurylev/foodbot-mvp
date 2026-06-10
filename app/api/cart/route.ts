@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { findActiveCart } from "@/lib/domain/orders";
 import type { MiniAppProvider } from "@/lib/mini-app/types";
 import { verifyMiniAppSession } from "@/lib/mini-app/verify/session";
+import { findCustomerByBotUser } from "@/lib/domain/customers";
 
 type CartRequestBody = {
   initData?: string;
@@ -22,6 +23,11 @@ export async function POST(request: Request) {
 
   try {
     const session = verifyMiniAppSession(body.provider, body.initData);
+    const customer = await findCustomerByBotUser(
+      session.provider === "telegram"
+        ? { channel: "telegram", telegramUserId: session.user.id }
+        : { channel: "max", maxUserId: session.user.id },
+    );
 
     return NextResponse.json({ cart: customer ? await findActiveCart(customer.id) : null });
   } catch (error) {

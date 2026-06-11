@@ -24,6 +24,7 @@ export function getTelegramMiniAppUrl(): string {
 }
 
 /** Диплинк мини-приложения для MAX */
-export function getMaxMiniAppUrl(): string {
-  return `https://max.ru/${getMaxBotName()}?startapp`;
+export function getMaxMiniAppUrl(payload?: string): string {
+  const base = `https://max.ru/${getMaxBotName()}?startapp`;
+  return payload ? `${base}=${payload}` : base;
 }

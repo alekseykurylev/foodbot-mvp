@@ -74,6 +74,7 @@ export interface Config {
     customers: Customer;
     'customer-addresses': CustomerAddress;
     orders: Order;
+    'ai-conversations': AiConversation;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -92,6 +93,7 @@ export interface Config {
     customers: CustomersSelect<false> | CustomersSelect<true>;
     'customer-addresses': CustomerAddressesSelect<false> | CustomerAddressesSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
+    'ai-conversations': AiConversationsSelect<false> | AiConversationsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -265,6 +267,10 @@ export interface Product {
      * Например: хорошо подходит детям, офису, большой компании.
      */
     aiDescription?: string | null;
+    /**
+     * Слова и фразы, по которым AI должен находить товар: «компания», «ужин», «детское», «перекус».
+     */
+    aiKeywords?: string[] | null;
   };
   /**
    * Например: мясное, без свинины, детское, острое.
@@ -412,6 +418,50 @@ export interface Order {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ai-conversations".
+ */
+export interface AiConversation {
+  id: number;
+  customer: number | Customer;
+  channel: 'telegram' | 'max';
+  status: 'active' | 'completed';
+  /**
+   * Первое сообщение пользователя, с которого начался диалог.
+   */
+  originalPrompt?: string | null;
+  /**
+   * Массив сообщений в формате [{ role, content }] для контекста AI.
+   */
+  messages:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Ключевые параметры, собранные в ходе диалога: гости, предпочтения, бюджет, ограничения.
+   */
+  collectedAnswers?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Заказ, созданный AI по итогам этого диалога.
+   */
+  cart?: (number | null) | Order;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -461,6 +511,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'orders';
         value: number | Order;
+      } | null)
+    | ({
+        relationTo: 'ai-conversations';
+        value: number | AiConversation;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -631,6 +685,7 @@ export interface ProductsSelect<T extends boolean = true> {
         peopleMin?: T;
         peopleMax?: T;
         aiDescription?: T;
+        aiKeywords?: T;
       };
   tags?: T;
   sortOrder?: T;
@@ -751,6 +806,21 @@ export interface OrdersSelect<T extends boolean = true> {
   paidAt?: T;
   cancelledAt?: T;
   internalNotes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ai-conversations_select".
+ */
+export interface AiConversationsSelect<T extends boolean = true> {
+  customer?: T;
+  channel?: T;
+  status?: T;
+  originalPrompt?: T;
+  messages?: T;
+  collectedAnswers?: T;
+  cart?: T;
   updatedAt?: T;
   createdAt?: T;
 }

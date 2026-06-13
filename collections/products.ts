@@ -232,6 +232,16 @@ export const Products: CollectionConfig = {
             description: "Например: хорошо подходит детям, офису, большой компании.",
           },
         },
+        {
+          name: "aiKeywords",
+          type: "text",
+          label: "Ключевые слова для AI",
+          hasMany: true,
+          admin: {
+            description:
+              "Слова и фразы, по которым AI должен находить товар: «компания», «ужин», «детское», «перекус».",
+          },
+        },
       ],
     },
     {

@@ -1,9 +1,10 @@
 import { Bot, GrammyError, HttpError, InlineKeyboard, Keyboard } from "grammy";
 import { BOT_COMMANDS } from "@/lib/bots/commands";
 import { getBotToken } from "@/lib/bots/shared";
-import { getTelegramMiniAppUrl } from "@/lib/bots/urls";
+import { getTelegramMiniAppUrl, getCartMiniAppUrl } from "@/lib/bots/urls";
 import { BOT_TEXTS } from "@/lib/bots/texts";
 import { saveBotCustomerPhone, upsertBotCustomer } from "@/lib/domain/customers";
+import { handleAiMessage, handleAiCallback } from "@/lib/bots/ai-assistant";
 import { askDeepSeek } from "@/lib/integrations/deepseek";
 
 // ---------------------------------------------------------------------------
@@ -37,6 +38,50 @@ async function saveCustomerPhone(user: TgUser, phone: string) {
 
 function getContactKeyboard() {
   return new Keyboard().requestContact(BOT_TEXTS.phoneButton).oneTime().resized();
+}
+
+function getCartMiniAppKeyboard(cartId: number) {
+  const url = getTelegramMiniAppUrl(getCartMiniAppUrl(cartId));
+
+  return new InlineKeyboard().webApp(BOT_TEXTS.cartOpen, url);
+}
+
+// ---------------------------------------------------------------------------
+// AI-хелперы
+// ---------------------------------------------------------------------------
+
+async function handleTextMessage(
+  ctx: {
+    from: TgUser;
+    reply: (text: string, other?: Record<string, unknown>) => Promise<unknown>;
+    replyWithHTML?: (text: string) => Promise<unknown>;
+  },
+  text: string,
+) {
+  const customer = await upsertCustomer(ctx.from);
+  const result = await handleAiMessage(customer, text, "telegram");
+
+  if (result.type === "question") {
+    await ctx.reply(result.text);
+    return;
+  }
+
+  if (result.type === "existing_cart") {
+    await ctx.reply(result.text, {
+      reply_markup: new InlineKeyboard([
+        [InlineKeyboard.text(BOT_TEXTS.cartAppend, BOT_TEXTS.callbackAppend)],
+        [InlineKeyboard.text(BOT_TEXTS.cartReplace, BOT_TEXTS.callbackReplace)],
+      ]),
+    });
+    return;
+  }
+
+  if (result.type === "suggestion") {
+    await ctx.reply(result.text, {
+      reply_markup: getCartMiniAppKeyboard(result.cartId),
+    });
+    return;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -110,11 +155,54 @@ export function getTelegramBot() {
   });
 
   instance.on("message:text", async (ctx) => {
-    if (ctx.from) {
-      await upsertCustomer(ctx.from);
+    // Если сообщение выглядит как команда — пропускаем (уже обработано command())
+    const text = ctx.message.text.trim();
+
+    if (text.startsWith("/")) {
+      await ctx.reply(await askDeepSeek(text));
+      return;
     }
 
-    await ctx.reply(await askDeepSeek(ctx.message.text));
+    if (ctx.from) {
+      await handleTextMessage(ctx, text);
+      return;
+    }
+
+    await ctx.reply(BOT_TEXTS.userNotIdentified);
+  });
+
+  // Обработка нажатий на inline-кнопки
+  instance.on("callback_query:data", async (ctx) => {
+    const data = ctx.callbackQuery.data;
+
+    if (!ctx.from) {
+      await ctx.answerCallbackQuery({ text: BOT_TEXTS.userNotIdentified });
+      return;
+    }
+
+    // Кнопки AI: «Добавить в заказ» / «Заменить заказ»
+    if (data === BOT_TEXTS.callbackAppend || data === BOT_TEXTS.callbackReplace) {
+      const mode = data === BOT_TEXTS.callbackAppend ? "append" : "replace";
+
+      await ctx.answerCallbackQuery();
+
+      const customer = await upsertCustomer(ctx.from);
+      const result = await handleAiCallback(customer, mode, "telegram");
+
+      if (result.type === "error") {
+        await ctx.reply(result.text);
+        return;
+      }
+
+      // Редактируем исходное сообщение — показываем результат
+      await ctx.editMessageText(result.text, {
+        reply_markup: getCartMiniAppKeyboard(result.cartId),
+      });
+
+      return;
+    }
+
+    await ctx.answerCallbackQuery({ text: "Неизвестное действие." });
   });
 
   instance.catch((err) => {

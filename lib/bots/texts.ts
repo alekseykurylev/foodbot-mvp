@@ -26,4 +26,20 @@ export const BOT_TEXTS = {
 
   /** Не текстовое сообщение */
   nonText: "Пока я понимаю только текстовые сообщения.",
+
+  /** Существующая корзина — заголовок */
+  existingCart: "У вас уже есть корзина на {total} ₽.\n\nЧто делаем с новым заказом?",
+
+  /** Кнопка «Добавить в заказ» */
+  cartAppend: "Добавить в заказ",
+
+  /** Кнопка «Заменить заказ» */
+  cartReplace: "Заменить заказ",
+
+  /** Кнопка «Открыть заказ» */
+  cartOpen: "Открыть заказ",
+
+  /** Callback data button prefixes */
+  callbackAppend: "ai:append",
+  callbackReplace: "ai:replace",
 } as const;

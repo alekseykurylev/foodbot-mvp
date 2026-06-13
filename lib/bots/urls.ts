@@ -19,12 +19,18 @@ function getMaxBotName(): string {
 }
 
 /** URL мини-приложения для Telegram (прямая ссылка) */
-export function getTelegramMiniAppUrl(): string {
-  return getAppUrl();
+export function getTelegramMiniAppUrl(path = ""): string {
+  return `${getAppUrl()}${path}`;
 }
 
 /** Диплинк мини-приложения для MAX */
 export function getMaxMiniAppUrl(payload?: string): string {
   const base = `https://max.ru/${getMaxBotName()}?startapp`;
   return payload ? `${base}=${payload}` : base;
+}
+
+/** URL страницы корзины в мини-приложении */
+export function getCartMiniAppUrl(orderId?: number | string): string {
+  const base = `/cart`;
+  return orderId ? `${base}?orderId=${orderId}` : base;
 }

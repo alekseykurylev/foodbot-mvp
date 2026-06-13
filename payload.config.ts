@@ -4,6 +4,7 @@ import { ru } from "@payloadcms/translations/languages/ru";
 import { buildConfig } from "payload";
 import path from "path";
 import { fileURLToPath } from "url";
+import { AiConversations } from "./collections/ai-conversations";
 import { Categories } from "./collections/categories";
 import { CustomerAddresses } from "./collections/customer-addresses";
 import { Customers } from "./collections/customers";
@@ -40,7 +41,16 @@ export default buildConfig({
       defaultTimezone: "Europe/Moscow",
     },
   },
-  collections: [Users, Media, Categories, Products, Customers, CustomerAddresses, Orders],
+  collections: [
+    Users,
+    Media,
+    Categories,
+    Products,
+    Customers,
+    CustomerAddresses,
+    Orders,
+    AiConversations,
+  ],
   secret: process.env.PAYLOAD_SECRET || "",
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),

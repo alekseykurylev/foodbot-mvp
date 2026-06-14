@@ -15,7 +15,7 @@ export function Cart() {
     return <Alert color="red">Ошибка</Alert>;
   }
 
-  if (!data || data.items.length === 0) {
+  if (!data || !data.items || data.items.length === 0) {
     return <Text c="dimmed">Корзина пуста.</Text>;
   }
 
@@ -31,7 +31,7 @@ export function Cart() {
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
-          {data.items.map((item) => (
+          {data.items?.map((item) => (
             <Table.Tr key={item.id ?? item.productNameSnapshot}>
               <Table.Td>{item.productNameSnapshot}</Table.Td>
               <Table.Td>{item.quantity}</Table.Td>

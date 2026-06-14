@@ -5,6 +5,7 @@ import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 import { buildConfig } from "payload";
 import path from "path";
 import { fileURLToPath } from "url";
+import { AiProposals } from "./collections/ai-proposals";
 import { Categories } from "./collections/categories";
 import { Customers } from "./collections/customers";
 import { Media } from "./collections/media";
@@ -40,7 +41,7 @@ export default buildConfig({
       defaultTimezone: "Europe/Moscow",
     },
   },
-  collections: [Users, Media, Categories, Products, Customers, Orders],
+  collections: [Users, Media, Categories, Products, Customers, Orders, AiProposals],
   plugins: [
     vercelBlobStorage({
       collections: {

@@ -87,20 +87,6 @@ export const Customers: CollectionConfig = {
       ],
     },
     {
-      name: "addresses",
-      type: "join",
-      label: "Адреса",
-      collection: "customer-addresses",
-      on: "customer",
-      defaultLimit: 10,
-      defaultSort: "-isDefault",
-      maxDepth: 1,
-      admin: {
-        allowCreate: true,
-        defaultColumns: ["label", "fullAddress", "isDefault", "status"],
-      },
-    },
-    {
       name: "preferences",
       type: "group",
       label: "Предпочтения",

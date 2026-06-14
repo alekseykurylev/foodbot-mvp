@@ -72,28 +72,22 @@ export interface Config {
     categories: Category;
     products: Product;
     customers: Customer;
-    'customer-addresses': CustomerAddress;
     orders: Order;
-    'ai-conversations': AiConversation;
+    'ai-proposals': AiProposal;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {
-    customers: {
-      addresses: 'customer-addresses';
-    };
-  };
+  collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
     customers: CustomersSelect<false> | CustomersSelect<true>;
-    'customer-addresses': CustomerAddressesSelect<false> | CustomerAddressesSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
-    'ai-conversations': AiConversationsSelect<false> | AiConversationsSelect<true>;
+    'ai-proposals': AiProposalsSelect<false> | AiProposalsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -301,11 +295,6 @@ export interface Customer {
   maxFirstName?: string | null;
   maxLastName?: string | null;
   status: 'active' | 'new' | 'vip' | 'blocked';
-  addresses?: {
-    docs?: (number | CustomerAddress)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
   preferences?: {
     favoriteCategories?: (number | Category)[] | null;
     dislikes?: string[] | null;
@@ -326,113 +315,47 @@ export interface Customer {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "customer-addresses".
- */
-export interface CustomerAddress {
-  id: number;
-  customer: number | Customer;
-  label: string;
-  fullAddress: string;
-  apartment?: string | null;
-  intercom?: string | null;
-  entrance?: string | null;
-  floor?: string | null;
-  comment?: string | null;
-  /**
-   * Если включить, остальные адреса этого клиента перестанут быть адресами по умолчанию.
-   */
-  isDefault?: boolean | null;
-  status: 'active' | 'archived';
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "orders".
  */
 export interface Order {
   id: number;
   customer: number | Customer;
   status: 'cart' | 'submitted' | 'paid' | 'completed' | 'cancelled';
-  source: 'ai' | 'manual' | 'admin' | 'reorder';
-  channel: 'telegram' | 'max' | 'mini_app' | 'admin';
-  /**
-   * Для корзины показывает, кто последним применил изменение.
-   */
-  lastEditedBy?: ('ai' | 'customer' | 'admin') | null;
-  items: {
-    product: number | Product;
-    productNameSnapshot: string;
-    unitPriceSnapshot: number;
-    quantity: number;
-    lineTotalSnapshot: number;
-    comment?: string | null;
-    id?: string | null;
-  }[];
+  items?:
+    | {
+        product: number | Product;
+        productNameSnapshot: string;
+        unitPriceSnapshot: number;
+        quantity: number;
+        lineTotalSnapshot: number;
+        id?: string | null;
+      }[]
+    | null;
   totals: {
     subtotalAmount: number;
-    discountAmount?: number | null;
-    deliveryAmount?: number | null;
     totalAmount: number;
   };
-  delivery?: {
-    address?: (number | null) | CustomerAddress;
-    /**
-     * Заполняется из выбранного адреса, но хранится отдельно для истории заказа.
-     */
-    addressSnapshot?: string | null;
-    apartmentSnapshot?: string | null;
-    intercomSnapshot?: string | null;
-    entranceSnapshot?: string | null;
-    floorSnapshot?: string | null;
-    customerComment?: string | null;
-    courierComment?: string | null;
-    requestedAt?: string | null;
-  };
-  payment?: {
-    method?: ('not_selected' | 'cash' | 'card_on_delivery' | 'online') | null;
-    status?: ('not_required' | 'pending' | 'paid' | 'failed' | 'refunded') | null;
-    provider?: string | null;
-    externalPaymentId?: string | null;
-  };
-  ai?: {
-    prompt?: string | null;
-    explanation?: string | null;
-    model?: string | null;
-    rawResponse?:
-      | {
-          [k: string]: unknown;
-        }
-      | unknown[]
-      | string
-      | number
-      | boolean
-      | null;
-  };
-  submittedAt?: string | null;
-  paidAt?: string | null;
-  cancelledAt?: string | null;
-  internalNotes?: string | null;
   updatedAt: string;
   createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ai-conversations".
+ * via the `definition` "ai-proposals".
  */
-export interface AiConversation {
+export interface AiProposal {
   id: number;
   customer: number | Customer;
   channel: 'telegram' | 'max';
-  status: 'active' | 'completed';
+  status: 'active' | 'applied' | 'expired';
+  userPrompt: string;
   /**
-   * Первое сообщение пользователя, с которого начался диалог.
+   * Почему AI выбрал именно эти товары.
    */
-  originalPrompt?: string | null;
+  explanation: string;
   /**
-   * Массив сообщений в формате [{ role, content }] для контекста AI.
+   * Массив [{ productId, productName, quantity, unitPrice, lineTotal }].
    */
-  messages:
+  items:
     | {
         [k: string]: unknown;
       }
@@ -441,10 +364,8 @@ export interface AiConversation {
     | number
     | boolean
     | null;
-  /**
-   * Ключевые параметры, собранные в ходе диалога: гости, предпочтения, бюджет, ограничения.
-   */
-  collectedAnswers?:
+  totalAmount: number;
+  aiRawResponse?:
     | {
         [k: string]: unknown;
       }
@@ -453,10 +374,7 @@ export interface AiConversation {
     | number
     | boolean
     | null;
-  /**
-   * Заказ, созданный AI по итогам этого диалога.
-   */
-  cart?: (number | null) | Order;
+  model?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -505,16 +423,12 @@ export interface PayloadLockedDocument {
         value: number | Customer;
       } | null)
     | ({
-        relationTo: 'customer-addresses';
-        value: number | CustomerAddress;
-      } | null)
-    | ({
         relationTo: 'orders';
         value: number | Order;
       } | null)
     | ({
-        relationTo: 'ai-conversations';
-        value: number | AiConversation;
+        relationTo: 'ai-proposals';
+        value: number | AiProposal;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -706,7 +620,6 @@ export interface CustomersSelect<T extends boolean = true> {
   maxFirstName?: T;
   maxLastName?: T;
   status?: T;
-  addresses?: T;
   preferences?:
     | T
     | {
@@ -728,32 +641,11 @@ export interface CustomersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "customer-addresses_select".
- */
-export interface CustomerAddressesSelect<T extends boolean = true> {
-  customer?: T;
-  label?: T;
-  fullAddress?: T;
-  apartment?: T;
-  intercom?: T;
-  entrance?: T;
-  floor?: T;
-  comment?: T;
-  isDefault?: T;
-  status?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "orders_select".
  */
 export interface OrdersSelect<T extends boolean = true> {
   customer?: T;
   status?: T;
-  source?: T;
-  channel?: T;
-  lastEditedBy?: T;
   items?:
     | T
     | {
@@ -762,65 +654,31 @@ export interface OrdersSelect<T extends boolean = true> {
         unitPriceSnapshot?: T;
         quantity?: T;
         lineTotalSnapshot?: T;
-        comment?: T;
         id?: T;
       };
   totals?:
     | T
     | {
         subtotalAmount?: T;
-        discountAmount?: T;
-        deliveryAmount?: T;
         totalAmount?: T;
       };
-  delivery?:
-    | T
-    | {
-        address?: T;
-        addressSnapshot?: T;
-        apartmentSnapshot?: T;
-        intercomSnapshot?: T;
-        entranceSnapshot?: T;
-        floorSnapshot?: T;
-        customerComment?: T;
-        courierComment?: T;
-        requestedAt?: T;
-      };
-  payment?:
-    | T
-    | {
-        method?: T;
-        status?: T;
-        provider?: T;
-        externalPaymentId?: T;
-      };
-  ai?:
-    | T
-    | {
-        prompt?: T;
-        explanation?: T;
-        model?: T;
-        rawResponse?: T;
-      };
-  submittedAt?: T;
-  paidAt?: T;
-  cancelledAt?: T;
-  internalNotes?: T;
   updatedAt?: T;
   createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ai-conversations_select".
+ * via the `definition` "ai-proposals_select".
  */
-export interface AiConversationsSelect<T extends boolean = true> {
+export interface AiProposalsSelect<T extends boolean = true> {
   customer?: T;
   channel?: T;
   status?: T;
-  originalPrompt?: T;
-  messages?: T;
-  collectedAnswers?: T;
-  cart?: T;
+  userPrompt?: T;
+  explanation?: T;
+  items?: T;
+  totalAmount?: T;
+  aiRawResponse?: T;
+  model?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -4,7 +4,7 @@ import { getBotToken } from "@/lib/bots/shared";
 import { getTelegramMiniAppUrl } from "@/lib/bots/urls";
 import { BOT_TEXTS } from "@/lib/bots/texts";
 import { saveBotCustomerPhone, upsertBotCustomer } from "@/lib/domain/customers";
-import { buildProposal, isProcessing } from "@/lib/bots/ai";
+import { buildProposal, isAwaitingHelp, isProcessing, startHelp } from "@/lib/bots/ai";
 
 // ---------------------------------------------------------------------------
 // Хелперы
@@ -151,7 +151,7 @@ export function getTelegramBot() {
     });
   });
 
-  // Callback: кнопка «Собрать корзину»
+  // Callback: кнопка «Подобрать заказ»
   instance.on("callback_query:data", async (ctx) => {
     const data = ctx.callbackQuery.data;
 
@@ -161,10 +161,15 @@ export function getTelegramBot() {
     }
 
     await ctx.answerCallbackQuery();
+
+    if (ctx.from) {
+      startHelp(Number(ctx.from.id));
+    }
+
     await ctx.reply(BOT_TEXTS.helpPrompt);
   });
 
-  // Текстовые сообщения — считаем описанием заказа
+  // Текстовые сообщения
   instance.on("message:text", async (ctx) => {
     const text = ctx.message.text.trim();
 
@@ -178,8 +183,18 @@ export function getTelegramBot() {
       return;
     }
 
+    const userId = Number(ctx.from.id);
+
+    // Если пользователь не нажимал «Подобрать заказ» — шлём стартовое сообщение
+    if (!isAwaitingHelp(userId)) {
+      await ctx.reply(BOT_TEXTS.start, {
+        reply_markup: getStartKeyboard(),
+      });
+      return;
+    }
+
     // Бот занят — игнорируем
-    if (isProcessing(Number(ctx.from.id))) {
+    if (isProcessing(userId)) {
       await ctx.reply(BOT_TEXTS.busy);
       return;
     }

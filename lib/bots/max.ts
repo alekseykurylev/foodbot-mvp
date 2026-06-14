@@ -5,7 +5,7 @@ import { getBotToken } from "@/lib/bots/shared";
 import { getMaxMiniAppUrl } from "@/lib/bots/urls";
 import { BOT_TEXTS } from "@/lib/bots/texts";
 import { saveBotCustomerPhone, upsertBotCustomer } from "@/lib/domain/customers";
-import { buildProposal, isProcessing } from "@/lib/bots/ai";
+import { buildProposal, isAwaitingHelp, isProcessing, startHelp } from "@/lib/bots/ai";
 
 // ---------------------------------------------------------------------------
 // Хелперы
@@ -143,12 +143,18 @@ export function getMaxBot() {
     });
   });
 
-  // Callback: кнопка «Собрать корзину»
+  // Callback: кнопка «Подобрать заказ»
   bot.on("message_callback", async (ctx) => {
     const payload = ctx.callback?.payload;
 
     if (!payload || payload !== BOT_TEXTS.callbackHelp) {
       return;
+    }
+
+    const user = ctx.user;
+
+    if (user) {
+      startHelp(Number(user.user_id));
     }
 
     await ctx.reply(BOT_TEXTS.helpPrompt);
@@ -188,8 +194,18 @@ export function getMaxBot() {
       return;
     }
 
+    const userId = Number(sender.user_id);
+
+    // Если пользователь не нажимал «Подобрать заказ» — шлём стартовое сообщение
+    if (!isAwaitingHelp(userId)) {
+      await ctx.reply(BOT_TEXTS.start, {
+        attachments: [getStartKeyboard()],
+      });
+      return;
+    }
+
     // Бот занят
-    if (isProcessing(Number(sender.user_id))) {
+    if (isProcessing(userId)) {
       await ctx.reply(BOT_TEXTS.busy);
       return;
     }

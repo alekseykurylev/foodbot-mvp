@@ -11,6 +11,9 @@ import type { AiProposal, Customer, Product } from "@/payload-types";
 
 const processing = new Set<number>();
 
+/** Пользователи, нажавшие «Подобрать заказ» и ожидающие ввода */
+const awaitingHelp = new Set<number>();
+
 // ---------------------------------------------------------------------------
 // Загрузка меню
 // ---------------------------------------------------------------------------
@@ -106,6 +109,7 @@ export async function buildProposal(
     return { message, proposalId: Number(proposalId), proposalUrl };
   } finally {
     processing.delete(customerID);
+    stopHelp(customerID);
   }
 }
 
@@ -114,4 +118,25 @@ export async function buildProposal(
  */
 export function isProcessing(customerID: number): boolean {
   return processing.has(customerID);
+}
+
+/**
+ * Начать сценарий «Подобрать заказ» — запоминаем, что ждём описание.
+ */
+export function startHelp(customerID: number): void {
+  awaitingHelp.add(customerID);
+}
+
+/**
+ * Ждёт ли бот описание заказа от этого клиента.
+ */
+export function isAwaitingHelp(customerID: number): boolean {
+  return awaitingHelp.has(customerID);
+}
+
+/**
+ * Завершить сценарий «Подобрать заказ» — клиент прислал описание.
+ */
+function stopHelp(customerID: number): void {
+  awaitingHelp.delete(customerID);
 }

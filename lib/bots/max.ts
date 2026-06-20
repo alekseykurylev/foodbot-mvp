@@ -5,7 +5,6 @@ import { getBotToken } from "@/lib/bots/shared";
 import { getMaxMiniAppUrl } from "@/lib/bots/urls";
 import { BOT_TEXTS } from "@/lib/bots/texts";
 import { saveBotCustomerPhone, upsertBotCustomer } from "@/lib/domain/customers";
-import { buildProposal, isAwaitingHelp, isProcessing, startHelp } from "@/lib/bots/ai";
 
 // ---------------------------------------------------------------------------
 // Хелперы
@@ -37,42 +36,7 @@ function getContactKeyboard() {
 function getStartKeyboard() {
   return MaxKeyboard.inlineKeyboard([
     [MaxKeyboard.button.link(BOT_TEXTS.menuButton, getMaxMiniAppUrl())],
-    [MaxKeyboard.button.callback(BOT_TEXTS.helpButton, BOT_TEXTS.callbackHelp)],
   ]);
-}
-
-function getProposalKeyboard(proposalUrl: string) {
-  return MaxKeyboard.inlineKeyboard([
-    [MaxKeyboard.button.link(BOT_TEXTS.proposalButton, getMaxMiniAppUrl(proposalUrl))],
-  ]);
-}
-
-// ---------------------------------------------------------------------------
-// Обработка заказа через AI
-// ---------------------------------------------------------------------------
-
-async function processOrder(
-  ctx: {
-    reply: (text: string, params?: Record<string, unknown>) => Promise<unknown>;
-    sendAction?: (action: "typing_on") => Promise<unknown>;
-  },
-  user: User,
-  text: string,
-) {
-  // Показываем набор текста
-  ctx.sendAction?.("typing_on").catch(() => {});
-
-  const customer = await upsertMaxCustomer(user);
-  const result = await buildProposal(customer, text, "max");
-
-  if (!result) {
-    await ctx.reply("Не удалось подобрать заказ. Попробуйте уточнить запрос.");
-    return;
-  }
-
-  await ctx.reply(result.message, {
-    attachments: [getProposalKeyboard(result.proposalUrl)],
-  });
 }
 
 // ---------------------------------------------------------------------------
@@ -143,23 +107,6 @@ export function getMaxBot() {
     });
   });
 
-  // Callback: кнопка «Подобрать заказ»
-  bot.on("message_callback", async (ctx) => {
-    const payload = ctx.callback?.payload;
-
-    if (!payload || payload !== BOT_TEXTS.callbackHelp) {
-      return;
-    }
-
-    const user = ctx.user;
-
-    if (user) {
-      startHelp(Number(user.user_id));
-    }
-
-    await ctx.reply(BOT_TEXTS.helpPrompt);
-  });
-
   // Входящие сообщения
   bot.on("message_created", async (ctx) => {
     const text = ctx.message.body.text?.trim();
@@ -193,31 +140,6 @@ export function getMaxBot() {
       await ctx.reply(BOT_TEXTS.userNotIdentified);
       return;
     }
-
-    const userId = Number(sender.user_id);
-
-    // Если пользователь не нажимал «Подобрать заказ» — шлём стартовое сообщение
-    if (!isAwaitingHelp(userId)) {
-      await ctx.reply(BOT_TEXTS.start, {
-        attachments: [getStartKeyboard()],
-      });
-      return;
-    }
-
-    // Бот занят
-    if (isProcessing(userId)) {
-      await ctx.reply(BOT_TEXTS.busy);
-      return;
-    }
-
-    await processOrder(
-      ctx as {
-        reply: (text: string, params?: Record<string, unknown>) => Promise<unknown>;
-        sendAction?: (action: "typing_on") => Promise<unknown>;
-      },
-      sender,
-      text,
-    );
   });
 
   bot.catch((err, ctx) => {

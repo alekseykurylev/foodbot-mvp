@@ -4,7 +4,6 @@ import { getBotToken } from "@/lib/bots/shared";
 import { getTelegramMiniAppUrl } from "@/lib/bots/urls";
 import { BOT_TEXTS } from "@/lib/bots/texts";
 import { saveBotCustomerPhone, upsertBotCustomer } from "@/lib/domain/customers";
-import { buildProposal, isAwaitingHelp, isProcessing, startHelp } from "@/lib/bots/ai";
 
 // ---------------------------------------------------------------------------
 // Хелперы
@@ -42,40 +41,7 @@ function getContactKeyboard() {
 function getStartKeyboard() {
   return new InlineKeyboard([
     [InlineKeyboard.webApp(BOT_TEXTS.menuButton, getTelegramMiniAppUrl())],
-    [InlineKeyboard.text(BOT_TEXTS.helpButton, BOT_TEXTS.callbackHelp)],
   ]);
-}
-
-function getProposalKeyboard(proposalUrl: string) {
-  return new InlineKeyboard().webApp(BOT_TEXTS.proposalButton, getTelegramMiniAppUrl(proposalUrl));
-}
-
-// ---------------------------------------------------------------------------
-// Обработка заказа через AI
-// ---------------------------------------------------------------------------
-
-async function processOrder(
-  ctx: {
-    reply: (text: string, other?: Record<string, unknown>) => Promise<unknown>;
-    replyWithChatAction?: (action: "typing") => Promise<unknown>;
-  },
-  user: TgUser,
-  text: string,
-) {
-  // Показываем набор текста
-  ctx.replyWithChatAction?.("typing").catch(() => {});
-
-  const customer = await upsertCustomer(user);
-  const result = await buildProposal(customer, text, "telegram");
-
-  if (!result) {
-    await ctx.reply("Не удалось подобрать заказ. Попробуйте уточнить запрос.");
-    return;
-  }
-
-  await ctx.reply(result.message, {
-    reply_markup: getProposalKeyboard(result.proposalUrl),
-  });
 }
 
 // ---------------------------------------------------------------------------
@@ -151,24 +117,6 @@ export function getTelegramBot() {
     });
   });
 
-  // Callback: кнопка «Подобрать заказ»
-  instance.on("callback_query:data", async (ctx) => {
-    const data = ctx.callbackQuery.data;
-
-    if (data !== BOT_TEXTS.callbackHelp) {
-      await ctx.answerCallbackQuery({ text: "Неизвестное действие." });
-      return;
-    }
-
-    await ctx.answerCallbackQuery();
-
-    if (ctx.from) {
-      startHelp(Number(ctx.from.id));
-    }
-
-    await ctx.reply(BOT_TEXTS.helpPrompt);
-  });
-
   // Текстовые сообщения
   instance.on("message:text", async (ctx) => {
     const text = ctx.message.text.trim();
@@ -182,24 +130,6 @@ export function getTelegramBot() {
       await ctx.reply(BOT_TEXTS.userNotIdentified);
       return;
     }
-
-    const userId = Number(ctx.from.id);
-
-    // Если пользователь не нажимал «Подобрать заказ» — шлём стартовое сообщение
-    if (!isAwaitingHelp(userId)) {
-      await ctx.reply(BOT_TEXTS.start, {
-        reply_markup: getStartKeyboard(),
-      });
-      return;
-    }
-
-    // Бот занят — игнорируем
-    if (isProcessing(userId)) {
-      await ctx.reply(BOT_TEXTS.busy);
-      return;
-    }
-
-    await processOrder(ctx, ctx.from, text);
   });
 
   // Ошибки

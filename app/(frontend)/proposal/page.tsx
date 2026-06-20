@@ -1,5 +1,5 @@
 import { getPayloadLocal } from "@/lib/cms/payload-local";
-import { Container, Group, Paper, Stack, Text, Title } from "@mantine/core";
+import { Container, Group, Stack, Text, Title } from "@mantine/core";
 import type { AiProposal } from "@/payload-types";
 
 type ProposalItem = {
@@ -53,12 +53,6 @@ export default async function Page({ searchParams }: Props) {
     <Container py="xl" size="sm">
       <Stack gap="lg">
         <Title order={2}>Ваше предложение</Title>
-
-        <Paper p="md" shadow="xs" withBorder>
-          <Text c="dimmed" size="sm">
-            {proposal.explanation}
-          </Text>
-        </Paper>
 
         <Stack gap="sm">
           {items.map((item, idx) => (

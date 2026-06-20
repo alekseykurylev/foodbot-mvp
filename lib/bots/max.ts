@@ -30,26 +30,43 @@ async function saveMaxCustomerPhone(user: User, phone: string) {
   });
 }
 
+type MaxKeyboardRows = Parameters<typeof MaxKeyboard.inlineKeyboard>[0];
+type MaxKeyboardButton = MaxKeyboardRows[number][number];
+type MaxRawButton =
+  | MaxKeyboardButton
+  | { type: "message"; text: string }
+  | { contact_id?: number; text: string; type: "open_app"; web_app?: string };
+
+function inlineKeyboard(buttons: MaxRawButton[][]) {
+  return MaxKeyboard.inlineKeyboard(buttons as MaxKeyboardRows);
+}
+
+function messageButton(text: string): MaxRawButton {
+  return { type: "message", text };
+}
+
+function openAppButton(text: string, webApp?: string): MaxRawButton {
+  return { text, type: "open_app", web_app: webApp };
+}
+
 function getContactKeyboard() {
-  return MaxKeyboard.inlineKeyboard([[MaxKeyboard.button.requestContact(BOT_TEXTS.phoneButton)]]);
+  return inlineKeyboard([[MaxKeyboard.button.requestContact(BOT_TEXTS.phoneButton)]]);
 }
 
 function getStartKeyboard() {
-  return MaxKeyboard.inlineKeyboard([
-    [MaxKeyboard.button.link(BOT_TEXTS.menuButton, getMaxMiniAppUrl())],
-    [MaxKeyboard.button.callback(BOT_TEXTS.helpButton, BOT_TEXTS.callbackHelp)],
+  return inlineKeyboard([
+    [openAppButton(BOT_TEXTS.menuButton, getMaxMiniAppUrl())],
+    [messageButton(BOT_TEXTS.helpButton)],
   ]);
 }
 
 function getHelpKeyboard() {
-  return MaxKeyboard.inlineKeyboard([
-    [MaxKeyboard.button.callback("Отмена", BOT_TEXTS.callbackCancel)],
-  ]);
+  return inlineKeyboard([[messageButton("Отмена")]]);
 }
 
 function getProposalKeyboard(proposalUrl: string) {
-  return MaxKeyboard.inlineKeyboard([
-    [MaxKeyboard.button.link(BOT_TEXTS.proposalButton, getMaxMiniAppUrl(proposalUrl))],
+  return inlineKeyboard([
+    [openAppButton(BOT_TEXTS.proposalButton, getMaxMiniAppUrl(proposalUrl))],
   ]);
 }
 
@@ -115,11 +132,7 @@ export function getMaxBot() {
     }
 
     await ctx.reply(BOT_TEXTS.menu, {
-      attachments: [
-        MaxKeyboard.inlineKeyboard([
-          [MaxKeyboard.button.link(BOT_TEXTS.menuButton, getMaxMiniAppUrl())],
-        ]),
-      ],
+      attachments: [inlineKeyboard([[openAppButton(BOT_TEXTS.menuButton, getMaxMiniAppUrl())]])],
     });
   });
 
@@ -156,32 +169,38 @@ export function getMaxBot() {
     });
   });
 
-  // Callback: «Подобрать заказ» / «Отмена»
-  bot.on("message_callback", async (ctx) => {
-    const payload = ctx.callback?.payload;
+  // Callback: «Отмена»
+  bot.action(BOT_TEXTS.callbackCancel, async (ctx) => {
     const user = ctx.user;
 
-    if (!payload || !user) {
+    if (!user) {
       return;
     }
 
     const customer = await upsertMaxCustomer(user);
-
-    if (payload === BOT_TEXTS.callbackCancel) {
-      await cancelProposalFlow({
-        channel: "max",
-        customer,
-        providerUserId: user.user_id,
-      });
-      await ctx.reply(BOT_TEXTS.helpCancelled, {
+    await cancelProposalFlow({
+      channel: "max",
+      customer,
+      providerUserId: user.user_id,
+    });
+    await ctx.answerOnCallback({
+      message: {
         attachments: [getStartKeyboard()],
-      });
+        text: BOT_TEXTS.helpCancelled,
+      },
+      notification: BOT_TEXTS.helpCancelled,
+    });
+  });
+
+  // Callback: «Подобрать заказ»
+  bot.action(BOT_TEXTS.callbackHelp, async (ctx) => {
+    const user = ctx.user;
+
+    if (!user) {
       return;
     }
 
-    if (payload !== BOT_TEXTS.callbackHelp) {
-      return;
-    }
+    const customer = await upsertMaxCustomer(user);
 
     const result = await startProposalFlow({
       channel: "max",
@@ -190,12 +209,19 @@ export function getMaxBot() {
     });
 
     if (result.status === "processing") {
-      await ctx.reply(BOT_TEXTS.busy);
+      await ctx.answerOnCallback({
+        message: { text: BOT_TEXTS.busy },
+        notification: BOT_TEXTS.busy,
+      });
       return;
     }
 
-    await ctx.reply(BOT_TEXTS.helpPrompt, {
-      attachments: [getHelpKeyboard()],
+    await ctx.answerOnCallback({
+      message: {
+        attachments: [getHelpKeyboard()],
+        text: BOT_TEXTS.helpPrompt,
+      },
+      notification: "Ожидаю описание заказа.",
     });
   });
 
@@ -234,6 +260,37 @@ export function getMaxBot() {
     }
 
     const customer = await upsertMaxCustomer(sender);
+
+    if (text === BOT_TEXTS.helpButton) {
+      const result = await startProposalFlow({
+        channel: "max",
+        customer,
+        providerUserId: sender.user_id,
+      });
+
+      if (result.status === "processing") {
+        await ctx.reply(BOT_TEXTS.busy);
+        return;
+      }
+
+      await ctx.reply(BOT_TEXTS.helpPrompt, {
+        attachments: [getHelpKeyboard()],
+      });
+      return;
+    }
+
+    if (text === "Отмена") {
+      await cancelProposalFlow({
+        channel: "max",
+        customer,
+        providerUserId: sender.user_id,
+      });
+      await ctx.reply(BOT_TEXTS.helpCancelled, {
+        attachments: [getStartKeyboard()],
+      });
+      return;
+    }
+
     const result = await processProposalPrompt({
       channel: "max",
       customer,

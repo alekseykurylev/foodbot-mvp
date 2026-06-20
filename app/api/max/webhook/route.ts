@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { handleMaxUpdate } from "@/lib/bots/max";
 import type { Update } from "@maxhub/max-bot-api/types";
 
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
   const secret = process.env.MAX_WEBHOOK_SECRET;
 

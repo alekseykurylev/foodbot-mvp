@@ -58,6 +58,10 @@ function isFreshProcessing(proposal: ProposalRecord): boolean {
   return Date.now() - startedAt < PROCESSING_TTL_MS;
 }
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "AI-подбор завершился ошибкой.";
+}
+
 async function loadActiveProducts(): Promise<Product[]> {
   const payload = await getPayloadLocal();
 
@@ -242,84 +246,103 @@ export async function processProposalPrompt(
 
   await input.onProcessing?.();
 
-  const products = await loadActiveProducts();
-  const { proposal, rawResponse } = await askDeepSeekForProposal(products, input.userPrompt);
+  try {
+    const products = await loadActiveProducts();
+    const { proposal, rawResponse } = await askDeepSeekForProposal(products, input.userPrompt);
 
-  const latest = (await payload.findByID({
-    collection: "ai-proposals",
-    id: processingProposal.id,
-    depth: 0,
-    overrideAccess: true,
-  })) as ProposalRecord;
-
-  if (latest.status !== "processing") {
-    return { status: "cancelled" };
-  }
-
-  if (proposal.status === "no_match") {
-    await payload.update({
+    const latest = (await payload.findByID({
       collection: "ai-proposals",
       id: processingProposal.id,
-      data: {
-        aiRawResponse: rawResponse as Record<string, unknown>,
-        explanation: proposal.explanation,
-        items: [],
-        model: AI_MODEL,
-        status: "no_match",
-        totalAmount: 0,
-      },
+      depth: 0,
       overrideAccess: true,
-    });
+    })) as ProposalRecord;
 
-    return { status: "no_match", explanation: proposal.explanation };
-  }
+    if (latest.status !== "processing") {
+      return { status: "cancelled" };
+    }
 
-  if (proposal.status === "failed" || proposal.items.length === 0) {
-    await payload.update({
+    if (proposal.status === "no_match") {
+      await payload.update({
+        collection: "ai-proposals",
+        id: processingProposal.id,
+        data: {
+          aiRawResponse: rawResponse as Record<string, unknown>,
+          explanation: proposal.explanation,
+          items: [],
+          model: AI_MODEL,
+          status: "no_match",
+          totalAmount: 0,
+        },
+        overrideAccess: true,
+      });
+
+      return { status: "no_match", explanation: proposal.explanation };
+    }
+
+    if (proposal.status === "failed" || proposal.items.length === 0) {
+      await payload.update({
+        collection: "ai-proposals",
+        id: processingProposal.id,
+        data: {
+          aiRawResponse: rawResponse as Record<string, unknown>,
+          errorMessage: proposal.explanation,
+          explanation: proposal.explanation,
+          items: [],
+          model: AI_MODEL,
+          status: "failed",
+          totalAmount: 0,
+        },
+        overrideAccess: true,
+      });
+
+      return { status: "failed", explanation: proposal.explanation };
+    }
+
+    const items = proposal.items.map((item) => ({
+      lineTotal: item.unitPrice * item.quantity,
+      productId: item.productId,
+      productName: item.productName,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+    }));
+
+    const readyProposal = (await payload.update({
       collection: "ai-proposals",
       id: processingProposal.id,
       data: {
         aiRawResponse: rawResponse as Record<string, unknown>,
-        errorMessage: proposal.explanation,
         explanation: proposal.explanation,
-        items: [],
+        items,
         model: AI_MODEL,
+        status: "ready",
+        totalAmount: proposal.totalAmount,
+      },
+      depth: 0,
+      overrideAccess: true,
+    })) as ProposalRecord;
+
+    return {
+      proposalId: Number(readyProposal.id),
+      proposalUrl: getProposalUrl(readyProposal.id),
+      status: "ready",
+      totalAmount: proposal.totalAmount,
+    };
+  } catch (error) {
+    const errorMessage = getErrorMessage(error);
+
+    await payload.update({
+      collection: "ai-proposals",
+      id: processingProposal.id,
+      data: {
+        errorMessage,
+        explanation: "Не удалось подобрать заказ из-за технической ошибки.",
+        items: [],
         status: "failed",
         totalAmount: 0,
       },
       overrideAccess: true,
     });
 
-    return { status: "failed", explanation: proposal.explanation };
+    return { status: "failed", explanation: "Не удалось подобрать заказ. Попробуйте ещё раз." };
   }
-
-  const items = proposal.items.map((item) => ({
-    lineTotal: item.unitPrice * item.quantity,
-    productId: item.productId,
-    productName: item.productName,
-    quantity: item.quantity,
-    unitPrice: item.unitPrice,
-  }));
-
-  const readyProposal = (await payload.update({
-    collection: "ai-proposals",
-    id: processingProposal.id,
-    data: {
-      aiRawResponse: rawResponse as Record<string, unknown>,
-      explanation: proposal.explanation,
-      items,
-      model: AI_MODEL,
-      status: "ready",
-      totalAmount: proposal.totalAmount,
-    },
-    depth: 0,
-    overrideAccess: true,
-  })) as ProposalRecord;
-
-  return {
-    proposalId: Number(readyProposal.id),
-    proposalUrl: getProposalUrl(readyProposal.id),
-    status: "ready",
-    totalAmount: proposal.totalAmount,
-  };
 }

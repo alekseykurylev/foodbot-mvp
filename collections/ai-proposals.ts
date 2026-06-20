@@ -11,7 +11,7 @@ export const AiProposals: CollectionConfig = {
   admin: {
     group: "CRM",
     useAsTitle: "id",
-    defaultColumns: ["customer", "channel", "totalAmount", "status", "createdAt"],
+    defaultColumns: ["customer", "channel", "providerUserId", "totalAmount", "status", "createdAt"],
   },
   defaultSort: "-createdAt",
   access: {
@@ -30,6 +30,16 @@ export const AiProposals: CollectionConfig = {
       maxDepth: 1,
     },
     {
+      name: "providerUserId",
+      type: "text",
+      label: "ID пользователя в канале",
+      required: true,
+      index: true,
+      admin: {
+        description: "Telegram user ID или MAX user ID. Нужен только для сценария бота.",
+      },
+    },
+    {
       name: "channel",
       type: "select",
       label: "Канал",
@@ -44,24 +54,26 @@ export const AiProposals: CollectionConfig = {
       type: "select",
       label: "Статус",
       required: true,
-      defaultValue: "active",
+      defaultValue: "awaiting_prompt",
       options: [
-        { label: "Активно", value: "active" },
-        { label: "Добавлен в корзину", value: "applied" },
+        { label: "Ожидает описание", value: "awaiting_prompt" },
+        { label: "Обрабатывается", value: "processing" },
+        { label: "Готово", value: "ready" },
+        { label: "Нет совпадений", value: "no_match" },
+        { label: "Ошибка", value: "failed" },
         { label: "Просрочен", value: "expired" },
+        { label: "Отменен", value: "cancelled" },
       ],
     },
     {
       name: "userPrompt",
       type: "textarea",
       label: "Запрос пользователя",
-      required: true,
     },
     {
       name: "explanation",
       type: "textarea",
       label: "Объяснение от AI",
-      required: true,
       admin: {
         description: "Почему AI выбрал именно эти товары.",
       },
@@ -70,21 +82,44 @@ export const AiProposals: CollectionConfig = {
       name: "items",
       type: "json",
       label: "Предложенные товары",
-      required: true,
       admin: {
-        description:
-          "Массив [{ productId, productName, quantity, unitPrice, lineTotal }].",
+        description: "Массив [{ productId, productName, quantity, unitPrice, lineTotal }].",
       },
     },
     {
       name: "totalAmount",
       type: "number",
       label: "Итоговая сумма",
-      required: true,
       min: 0,
+      defaultValue: 0,
       admin: {
         step: 1,
       },
+    },
+    {
+      name: "expiresAt",
+      type: "date",
+      label: "Ожидать описание до",
+      admin: {
+        date: {
+          pickerAppearance: "dayAndTime",
+        },
+      },
+    },
+    {
+      name: "processingStartedAt",
+      type: "date",
+      label: "Обработка началась",
+      admin: {
+        date: {
+          pickerAppearance: "dayAndTime",
+        },
+      },
+    },
+    {
+      name: "errorMessage",
+      type: "textarea",
+      label: "Ошибка",
     },
     {
       name: "aiRawResponse",

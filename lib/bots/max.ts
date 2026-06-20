@@ -5,6 +5,7 @@ import { getBotToken } from "@/lib/bots/shared";
 import { getMaxMiniAppUrl } from "@/lib/bots/urls";
 import { BOT_TEXTS } from "@/lib/bots/texts";
 import { saveBotCustomerPhone, upsertBotCustomer } from "@/lib/domain/customers";
+import { cancelProposalFlow, processProposalPrompt, startProposalFlow } from "@/lib/bots/ai";
 
 // ---------------------------------------------------------------------------
 // Хелперы
@@ -36,6 +37,19 @@ function getContactKeyboard() {
 function getStartKeyboard() {
   return MaxKeyboard.inlineKeyboard([
     [MaxKeyboard.button.link(BOT_TEXTS.menuButton, getMaxMiniAppUrl())],
+    [MaxKeyboard.button.callback(BOT_TEXTS.helpButton, BOT_TEXTS.callbackHelp)],
+  ]);
+}
+
+function getHelpKeyboard() {
+  return MaxKeyboard.inlineKeyboard([
+    [MaxKeyboard.button.callback("Отмена", BOT_TEXTS.callbackCancel)],
+  ]);
+}
+
+function getProposalKeyboard(proposalUrl: string) {
+  return MaxKeyboard.inlineKeyboard([
+    [MaxKeyboard.button.link(BOT_TEXTS.proposalButton, getMaxMiniAppUrl(proposalUrl))],
   ]);
 }
 
@@ -56,7 +70,12 @@ export function getMaxBot() {
   // Первый запуск бота пользователем
   bot.on("bot_started", async (ctx) => {
     if (ctx.user) {
-      await upsertMaxCustomer(ctx.user);
+      const customer = await upsertMaxCustomer(ctx.user);
+      await cancelProposalFlow({
+        channel: "max",
+        customer,
+        providerUserId: ctx.user.user_id,
+      });
     }
 
     await ctx.reply(BOT_TEXTS.start, {
@@ -69,7 +88,12 @@ export function getMaxBot() {
     const sender = ctx.message.sender;
 
     if (sender) {
-      await upsertMaxCustomer(sender);
+      const customer = await upsertMaxCustomer(sender);
+      await cancelProposalFlow({
+        channel: "max",
+        customer,
+        providerUserId: sender.user_id,
+      });
     }
 
     await ctx.reply(BOT_TEXTS.start, {
@@ -82,7 +106,12 @@ export function getMaxBot() {
     const sender = ctx.message.sender;
 
     if (sender) {
-      await upsertMaxCustomer(sender);
+      const customer = await upsertMaxCustomer(sender);
+      await cancelProposalFlow({
+        channel: "max",
+        customer,
+        providerUserId: sender.user_id,
+      });
     }
 
     await ctx.reply(BOT_TEXTS.menu, {
@@ -91,6 +120,26 @@ export function getMaxBot() {
           [MaxKeyboard.button.link(BOT_TEXTS.menuButton, getMaxMiniAppUrl())],
         ]),
       ],
+    });
+  });
+
+  // /cancel
+  bot.command("cancel", async (ctx) => {
+    const sender = ctx.message.sender;
+
+    if (!sender) {
+      await ctx.reply(BOT_TEXTS.userNotIdentified);
+      return;
+    }
+
+    const customer = await upsertMaxCustomer(sender);
+    await cancelProposalFlow({
+      channel: "max",
+      customer,
+      providerUserId: sender.user_id,
+    });
+    await ctx.reply(BOT_TEXTS.helpCancelled, {
+      attachments: [getStartKeyboard()],
     });
   });
 
@@ -104,6 +153,49 @@ export function getMaxBot() {
 
     await ctx.reply(BOT_TEXTS.phoneRequest, {
       attachments: [getContactKeyboard()],
+    });
+  });
+
+  // Callback: «Подобрать заказ» / «Отмена»
+  bot.on("message_callback", async (ctx) => {
+    const payload = ctx.callback?.payload;
+    const user = ctx.user;
+
+    if (!payload || !user) {
+      return;
+    }
+
+    const customer = await upsertMaxCustomer(user);
+
+    if (payload === BOT_TEXTS.callbackCancel) {
+      await cancelProposalFlow({
+        channel: "max",
+        customer,
+        providerUserId: user.user_id,
+      });
+      await ctx.reply(BOT_TEXTS.helpCancelled, {
+        attachments: [getStartKeyboard()],
+      });
+      return;
+    }
+
+    if (payload !== BOT_TEXTS.callbackHelp) {
+      return;
+    }
+
+    const result = await startProposalFlow({
+      channel: "max",
+      customer,
+      providerUserId: user.user_id,
+    });
+
+    if (result.status === "processing") {
+      await ctx.reply(BOT_TEXTS.busy);
+      return;
+    }
+
+    await ctx.reply(BOT_TEXTS.helpPrompt, {
+      attachments: [getHelpKeyboard()],
     });
   });
 
@@ -139,6 +231,57 @@ export function getMaxBot() {
     if (!sender) {
       await ctx.reply(BOT_TEXTS.userNotIdentified);
       return;
+    }
+
+    const customer = await upsertMaxCustomer(sender);
+    const result = await processProposalPrompt({
+      channel: "max",
+      customer,
+      onProcessing: async () => {
+        await ctx.reply(BOT_TEXTS.processing);
+        ctx.sendAction?.("typing_on").catch(() => {});
+      },
+      providerUserId: sender.user_id,
+      userPrompt: text,
+    });
+
+    if (result.status === "ready") {
+      await ctx.reply(BOT_TEXTS.proposalReady.replace("{total}", String(result.totalAmount)), {
+        attachments: [getProposalKeyboard(result.proposalUrl)],
+      });
+      return;
+    }
+
+    if (result.status === "no_match") {
+      await ctx.reply(result.explanation, {
+        attachments: [getStartKeyboard()],
+      });
+      return;
+    }
+
+    if (result.status === "busy") {
+      await ctx.reply(BOT_TEXTS.busy);
+      return;
+    }
+
+    if (result.status === "expired") {
+      await ctx.reply(BOT_TEXTS.helpExpired, {
+        attachments: [getStartKeyboard()],
+      });
+      return;
+    }
+
+    if (result.status === "missing") {
+      await ctx.reply(BOT_TEXTS.helpRequired, {
+        attachments: [getStartKeyboard()],
+      });
+      return;
+    }
+
+    if (result.status === "failed") {
+      await ctx.reply(result.explanation || BOT_TEXTS.proposalFailed, {
+        attachments: [getStartKeyboard()],
+      });
     }
   });
 

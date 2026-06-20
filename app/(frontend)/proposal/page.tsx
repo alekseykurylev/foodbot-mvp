@@ -1,5 +1,5 @@
 import { getPayloadLocal } from "@/lib/cms/payload-local";
-import { Container, Group, Stack, Text, Title } from "@mantine/core";
+import { Alert, Container, Group, Stack, Text, Title } from "@mantine/core";
 import type { AiProposal } from "@/payload-types";
 
 type ProposalItem = {
@@ -49,10 +49,37 @@ export default async function Page({ searchParams }: Props) {
 
   const items = (proposal.items as ProposalItem[]) ?? [];
 
+  if (proposal.status !== "ready") {
+    const message =
+      proposal.status === "processing"
+        ? "Предложение ещё готовится. Вернитесь в чат и дождитесь сообщения от бота."
+        : proposal.status === "no_match"
+          ? proposal.explanation || "Не удалось подобрать позиции из текущего меню."
+          : proposal.status === "failed"
+            ? proposal.errorMessage || "Не удалось подготовить предложение."
+            : proposal.status === "expired"
+              ? "Время ожидания описания заказа истекло."
+              : proposal.status === "cancelled"
+                ? "Подбор заказа отменён."
+                : "Предложение пока не готово.";
+
+    return (
+      <Container py="xl" size="sm">
+        <Alert color={proposal.status === "processing" ? "blue" : "yellow"}>{message}</Alert>
+      </Container>
+    );
+  }
+
   return (
     <Container py="xl" size="sm">
       <Stack gap="lg">
         <Title order={2}>Ваше предложение</Title>
+
+        {proposal.explanation ? (
+          <Text c="dimmed" size="sm">
+            {proposal.explanation}
+          </Text>
+        ) : null}
 
         <Stack gap="sm">
           {items.map((item, idx) => (

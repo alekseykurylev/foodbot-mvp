@@ -1,6 +1,8 @@
 import OpenAI from "openai";
 import type { Product } from "@/payload-types";
 
+const DEEPSEEK_MODEL = "deepseek-v4-pro";
+
 // ---------------------------------------------------------------------------
 // Системные промпты
 // ---------------------------------------------------------------------------
@@ -49,7 +51,7 @@ export function getDeepSeekClient() {
 /** Простой текстовый запрос (для справок, не для заказа) */
 export async function askDeepSeek(text: string) {
   const completion = await getDeepSeekClient().chat.completions.create({
-    model: "deepseek-v4-pro",
+    model: DEEPSEEK_MODEL,
     temperature: 0.3,
     max_completion_tokens: 500,
     messages: [
@@ -81,6 +83,29 @@ type CompactProduct = {
   weightGrams?: null | number;
 };
 
+type AiProposalResponse = {
+  explanation: string;
+  items: Array<{
+    productId: number;
+    quantity: number;
+  }>;
+  status: "proposal" | "no_match";
+};
+
+export type ProposalItem = {
+  productId: number;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+};
+
+export type ProposalResult = {
+  explanation: string;
+  items: ProposalItem[];
+  status: "proposal" | "no_match" | "failed";
+  totalAmount: number;
+};
+
 function compactProduct(p: Product, categoryName: string): CompactProduct {
   return {
     aiDescription: p.recommendation?.aiDescription ?? null,
@@ -97,6 +122,12 @@ function compactProduct(p: Product, categoryName: string): CompactProduct {
     tags: p.tags ?? null,
     weightGrams: p.details?.weightGrams ?? null,
   };
+}
+
+function getCategoryName(product: Product): string {
+  return typeof product.category === "object" && product.category !== null
+    ? product.category.name
+    : String(product.category);
 }
 
 function formatCompactMenu(products: CompactProduct[]): string {
@@ -123,15 +154,15 @@ function formatCompactMenu(products: CompactProduct[]): string {
     }
 
     if (p.aiKeywords?.length) {
-      parts.push(`контекст: ${p.aiKeywords.join(", ")}`);
+      parts.push(`разговорные названия и контекст: ${p.aiKeywords.join(", ")}`);
     }
 
     if (p.aiDescription) {
-      parts.push(`описание: ${p.aiDescription}`);
+      parts.push(`описание для подбора: ${p.aiDescription}`);
     }
 
     if (p.peopleMin != null || p.peopleMax != null) {
-      parts.push(`гостей: ${p.peopleMin ?? 1}–${p.peopleMax ?? "много"}`);
+      parts.push(`гостей: ${p.peopleMin ?? 1}-${p.peopleMax ?? "много"}`);
     }
 
     if (p.spicyLevel != null && p.spicyLevel > 0) {
@@ -141,69 +172,207 @@ function formatCompactMenu(products: CompactProduct[]): string {
     return parts.join(" | ");
   });
 
-  return `МЕНЮ (только эти товары существуют, используй их id):\n${lines.join("\n")}`;
+  return `МЕНЮ (только эти товары существуют, используй только их id):\n${lines.join("\n")}`;
 }
 
 function buildProposalSystemPrompt(menuText: string): string {
   return `
-Ты AI-помощник ресторана. Твоя задача — подобрать заказ под запрос клиента.
+Ты AI-помощник ресторана. Твоя задача — подобрать заказ под одно сообщение клиента.
 Отвечай только на русском языке.
 
-ПРАВИЛА:
-1. Используй ТОЛЬКО товары из меню ниже. Не придумывай названия, цены, размеры.
-2. Учитывай количество человек — следи за параметрами гостей (peopleMin/peopleMax).
-3. Старайся разнообразить корзину — бери из разных категорий, когда это уместно.
-4. Учитывай бюджет, если пользователь его назвал.
-5. Учитывай предпочтения (мясо/рыба/вегетарианство).
-6. Исключай товары, которые не подходят под ограничения (без острого, без свинины).
-7. Если данных недостаточно — делай лучшее предположение на основе того, что есть.
+ГЛАВНОЕ:
+- Используй ТОЛЬКО товары из меню ниже.
+- Не придумывай товары, id, названия, цены, размеры, акции и условия.
+- В items возвращай только productId и quantity. Названия и цены рассчитает сервер.
+- Не подменяй конкретный отсутствующий тип блюда другим типом без явного разрешения клиента.
+
+КАК ПОДБИРАТЬ:
+1. Если запрос общий ("на двоих", "до 3000", "что-нибудь сытное", "с рыбой"), подбери подходящие товары из доступного меню.
+2. Если клиент просит конкретный тип блюда, которого нет в меню (например пиццу, бургер, пасту), верни status = "no_match".
+3. Если клиент использует разговорные названия, сокращения или сленг, сопоставляй их с name, category, ingredients, tags, aiKeywords и aiDescription.
+4. Примеры разговорных соответствий: "шейка" может значить "Шашлык из шейки свинины"; "люля" или "люляшка" может значить "Люля-Кебаб".
+5. Если разговорное соответствие уверенное — используй товар из меню.
+6. Учитывай количество человек, бюджет, предпочтения и ограничения.
+7. Исключай товары, которые явно не подходят под ограничения клиента (без острого, без свинины, аллергии).
+8. Если данных мало, но запрос совместим с меню, сделай разумное предложение.
 
 ${menuText}
 
-ФОРМАТ ОТВЕТА — строго JSON без лишнего текста:
+ФОРМАТ ОТВЕТА — строго JSON без лишнего текста.
+
+Если удалось подобрать:
 {
+  "status": "proposal",
   "explanation": "краткое объяснение (1-2 предложения), почему выбраны эти блюда",
   "items": [
-    { "productId": 1, "productName": "Маргарита", "quantity": 2, "unitPrice": 650 }
+    { "productId": 1, "quantity": 2 }
   ]
+}
+
+Если запрос несовместим с меню:
+{
+  "status": "no_match",
+  "explanation": "кратко объясни, чего нет в меню, и предложи попросить подбор из доступных позиций",
+  "items": []
 }
 `.trim();
 }
 
-export type ProposalItem = {
-  productId: number;
-  productName: string;
-  quantity: number;
-  unitPrice: number;
-};
+function failedProposal(
+  explanation = "Не удалось подобрать заказ. Попробуйте уточнить запрос.",
+): ProposalResult {
+  return {
+    explanation,
+    items: [],
+    status: "failed",
+    totalAmount: 0,
+  };
+}
 
-export type ProposalResult = {
-  explanation: string;
-  items: ProposalItem[];
-  totalAmount: number;
-};
+function noMatchProposal(explanation: string): ProposalResult {
+  return {
+    explanation,
+    items: [],
+    status: "no_match",
+    totalAmount: 0,
+  };
+}
+
+function parsePositiveInteger(value: unknown, fallback: number): number {
+  const numberValue = Number(value);
+
+  if (!Number.isFinite(numberValue)) {
+    return fallback;
+  }
+
+  return Math.max(1, Math.trunc(numberValue));
+}
+
+function extractJsonObject(raw: string): string | null {
+  const firstBrace = raw.indexOf("{");
+  const lastBrace = raw.lastIndexOf("}");
+
+  if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
+    return null;
+  }
+
+  return raw.slice(firstBrace, lastBrace + 1);
+}
+
+function parseProposalResponse(raw: string): AiProposalResponse | null {
+  const json = extractJsonObject(raw);
+
+  if (!json) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(json) as Record<string, unknown>;
+    const status = parsed.status === "no_match" ? "no_match" : "proposal";
+    const explanation = String(parsed.explanation ?? "").trim();
+
+    const items =
+      status === "proposal" && Array.isArray(parsed.items)
+        ? parsed.items.map((item) => {
+            const record = item as Record<string, unknown>;
+
+            return {
+              productId: Number(record.productId ?? 0),
+              quantity: parsePositiveInteger(record.quantity, 1),
+            };
+          })
+        : [];
+
+    return {
+      explanation,
+      items,
+      status,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function normalizeProposal(
+  aiResponse: AiProposalResponse | null,
+  products: Product[],
+): ProposalResult {
+  if (!aiResponse) {
+    return failedProposal();
+  }
+
+  if (aiResponse.status === "no_match") {
+    return noMatchProposal(
+      aiResponse.explanation || "В меню нет подходящих позиций под ваш запрос.",
+    );
+  }
+
+  const productsById = new Map(products.map((product) => [product.id, product]));
+  const quantitiesByProductId = new Map<number, number>();
+
+  for (const item of aiResponse.items) {
+    if (!Number.isInteger(item.productId) || !productsById.has(item.productId)) {
+      continue;
+    }
+
+    const currentQuantity = quantitiesByProductId.get(item.productId) ?? 0;
+    quantitiesByProductId.set(item.productId, currentQuantity + item.quantity);
+  }
+
+  const items: ProposalItem[] = Array.from(quantitiesByProductId.entries()).map(
+    ([productId, quantity]) => {
+      const product = productsById.get(productId);
+
+      if (!product) {
+        throw new Error(`Product ${productId} disappeared during proposal normalization.`);
+      }
+
+      return {
+        productId,
+        productName: product.name,
+        quantity,
+        unitPrice: product.price,
+      };
+    },
+  );
+
+  if (items.length === 0) {
+    return failedProposal("Не удалось подобрать товары из актуального меню.");
+  }
+
+  return {
+    explanation: aiResponse.explanation || "Подобрал заказ из доступных позиций меню.",
+    items,
+    status: "proposal",
+    totalAmount: items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0),
+  };
+}
 
 /**
  * Вызывает DeepSeek для подбора предложения на основе меню и запроса пользователя.
+ * AI выбирает только productId и quantity; названия, цены и суммы берутся из Product.
  */
 export async function askDeepSeekForProposal(
   products: Product[],
   userPrompt: string,
 ): Promise<{ proposal: ProposalResult; rawResponse: unknown }> {
-  const compactProducts = products.map((p) => {
-    const categoryName =
-      typeof p.category === "object" && p.category !== null ? p.category.name : String(p.category);
+  if (products.length === 0) {
+    return {
+      proposal: noMatchProposal("Сейчас нет доступных позиций меню для подбора заказа."),
+      rawResponse: { content: null },
+    };
+  }
 
-    return compactProduct(p, categoryName);
-  });
-
+  const compactProducts = products.map((product) =>
+    compactProduct(product, getCategoryName(product)),
+  );
   const menuText = formatCompactMenu(compactProducts);
   const systemPrompt = buildProposalSystemPrompt(menuText);
 
   const completion = await getDeepSeekClient().chat.completions.create({
-    model: "deepseek-v4-pro",
-    temperature: 0.3,
-    max_completion_tokens: 1000,
+    model: DEEPSEEK_MODEL,
+    temperature: 0.2,
+    max_completion_tokens: 800,
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
@@ -211,43 +380,8 @@ export async function askDeepSeekForProposal(
   });
 
   const rawContent = completion.choices[0]?.message.content ?? "";
-  const proposal = parseProposalResponse(rawContent);
+  const aiResponse = parseProposalResponse(rawContent);
+  const proposal = normalizeProposal(aiResponse, products);
 
-  return { proposal, rawResponse: { content: rawContent } };
-}
-
-function parseProposalResponse(raw: string): ProposalResult {
-  const jsonMatch = raw.match(/\{[\s\S]*\}/);
-
-  if (!jsonMatch) {
-    return {
-      explanation: "Не удалось подобрать заказ. Попробуйте уточнить запрос.",
-      items: [],
-      totalAmount: 0,
-    };
-  }
-
-  try {
-    const parsed = JSON.parse(jsonMatch[0]);
-    const explanation = String(parsed.explanation ?? "");
-
-    const items: ProposalItem[] = Array.isArray(parsed.items)
-      ? parsed.items.map((item: Record<string, unknown>) => ({
-          productId: Number(item.productId ?? 0),
-          productName: String(item.productName ?? ""),
-          quantity: Math.max(1, Math.trunc(Number(item.quantity ?? 1))),
-          unitPrice: Math.max(0, Math.trunc(Number(item.unitPrice ?? 0))),
-        }))
-      : [];
-
-    const totalAmount = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
-
-    return { explanation, items, totalAmount };
-  } catch {
-    return {
-      explanation: "Не удалось подобрать заказ. Попробуйте уточнить запрос.",
-      items: [],
-      totalAmount: 0,
-    };
-  }
+  return { proposal, rawResponse: { content: rawContent, parsed: aiResponse } };
 }

@@ -27,6 +27,10 @@ export function getTelegramAiAppUrl(): string {
   return getTelegramMiniAppUrl("/?start=ai");
 }
 
+export function getTelegramCartAppUrl(): string {
+  return getTelegramMiniAppUrl("/?start=cart");
+}
+
 export function getTelegramMenuAppUrl(): string {
   return getTelegramMiniAppUrl("/?start=menu");
 }
@@ -39,6 +43,10 @@ export function getMaxMiniAppUrl(payload?: string): string {
 
 export function getMaxAiAppUrl(): string {
   return getMaxMiniAppUrl("ai");
+}
+
+export function getMaxCartAppUrl(): string {
+  return getMaxMiniAppUrl("cart");
 }
 
 export function getMaxMenuAppUrl(): string {

@@ -2,7 +2,7 @@ import { Bot, Keyboard as MaxKeyboard } from "@maxhub/max-bot-api";
 import type { Update, User } from "@maxhub/max-bot-api/types";
 import { MAX_BOT_COMMANDS } from "@/lib/bots/commands";
 import { getBotToken } from "@/lib/bots/shared";
-import { getMaxAiAppUrl, getMaxMenuAppUrl } from "@/lib/bots/urls";
+import { getMaxAiAppUrl, getMaxCartAppUrl, getMaxMenuAppUrl } from "@/lib/bots/urls";
 import { BOT_TEXTS } from "@/lib/bots/texts";
 import { saveBotCustomerPhone, upsertBotCustomer } from "@/lib/domain/customers";
 
@@ -51,6 +51,7 @@ function getStartKeyboard() {
   return inlineKeyboard([
     [openAppButton(BOT_TEXTS.menuButton, getMaxMenuAppUrl())],
     [openAppButton(BOT_TEXTS.helpButton, getMaxAiAppUrl())],
+    [openAppButton(BOT_TEXTS.cartButton, getMaxCartAppUrl())],
   ]);
 }
 
@@ -105,6 +106,32 @@ export function getMaxBot() {
     });
   });
 
+  // /ai
+  bot.command("ai", async (ctx) => {
+    const sender = ctx.message.sender;
+
+    if (sender) {
+      await upsertMaxCustomer(sender);
+    }
+
+    await ctx.reply(BOT_TEXTS.ai, {
+      attachments: [inlineKeyboard([[openAppButton(BOT_TEXTS.helpButton, getMaxAiAppUrl())]])],
+    });
+  });
+
+  // /cart
+  bot.command("cart", async (ctx) => {
+    const sender = ctx.message.sender;
+
+    if (sender) {
+      await upsertMaxCustomer(sender);
+    }
+
+    await ctx.reply(BOT_TEXTS.cart, {
+      attachments: [inlineKeyboard([[openAppButton(BOT_TEXTS.cartButton, getMaxCartAppUrl())]])],
+    });
+  });
+
   // /phone
   bot.command("phone", async (ctx) => {
     const sender = ctx.message.sender;
@@ -138,7 +165,9 @@ export function getMaxBot() {
 
     // Текст
     if (!text) {
-      await ctx.reply(BOT_TEXTS.nonText);
+      await ctx.reply(BOT_TEXTS.start, {
+        attachments: [getStartKeyboard()],
+      });
       return;
     }
 
@@ -153,7 +182,7 @@ export function getMaxBot() {
     }
 
     await upsertMaxCustomer(sender);
-    await ctx.reply(BOT_TEXTS.openAppHint, {
+    await ctx.reply(BOT_TEXTS.start, {
       attachments: [getStartKeyboard()],
     });
   });

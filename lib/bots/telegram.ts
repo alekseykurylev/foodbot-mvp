@@ -1,7 +1,7 @@
 import { Bot, GrammyError, HttpError, InlineKeyboard, Keyboard } from "grammy";
 import { BOT_COMMANDS } from "@/lib/bots/commands";
 import { getBotToken } from "@/lib/bots/shared";
-import { getTelegramAiAppUrl, getTelegramMenuAppUrl } from "@/lib/bots/urls";
+import { getTelegramAiAppUrl, getTelegramCartAppUrl, getTelegramMenuAppUrl } from "@/lib/bots/urls";
 import { BOT_TEXTS } from "@/lib/bots/texts";
 import { saveBotCustomerPhone, upsertBotCustomer } from "@/lib/domain/customers";
 
@@ -42,6 +42,7 @@ function getStartKeyboard() {
   return new InlineKeyboard([
     [InlineKeyboard.webApp(BOT_TEXTS.menuButton, getTelegramMenuAppUrl())],
     [InlineKeyboard.webApp(BOT_TEXTS.helpButton, getTelegramAiAppUrl())],
+    [InlineKeyboard.webApp(BOT_TEXTS.cartButton, getTelegramCartAppUrl())],
   ]);
 }
 
@@ -84,6 +85,28 @@ export function getTelegramBot() {
 
     await ctx.reply(BOT_TEXTS.menu, {
       reply_markup: new InlineKeyboard().webApp(BOT_TEXTS.menuButton, getTelegramMenuAppUrl()),
+    });
+  });
+
+  // /ai — подобрать заказ
+  instance.command("ai", async (ctx) => {
+    if (ctx.from) {
+      await upsertCustomer(ctx.from);
+    }
+
+    await ctx.reply(BOT_TEXTS.ai, {
+      reply_markup: new InlineKeyboard().webApp(BOT_TEXTS.helpButton, getTelegramAiAppUrl()),
+    });
+  });
+
+  // /cart — открыть корзину
+  instance.command("cart", async (ctx) => {
+    if (ctx.from) {
+      await upsertCustomer(ctx.from);
+    }
+
+    await ctx.reply(BOT_TEXTS.cart, {
+      reply_markup: new InlineKeyboard().webApp(BOT_TEXTS.cartButton, getTelegramCartAppUrl()),
     });
   });
 
@@ -133,7 +156,20 @@ export function getTelegramBot() {
     }
 
     await upsertCustomer(ctx.from);
-    await ctx.reply(BOT_TEXTS.openAppHint, {
+    await ctx.reply(BOT_TEXTS.start, {
+      reply_markup: getStartKeyboard(),
+    });
+  });
+
+  // Остальные сообщения
+  instance.on("message", async (ctx) => {
+    if (!ctx.from) {
+      await ctx.reply(BOT_TEXTS.userNotIdentified);
+      return;
+    }
+
+    await upsertCustomer(ctx.from);
+    await ctx.reply(BOT_TEXTS.start, {
       reply_markup: getStartKeyboard(),
     });
   });

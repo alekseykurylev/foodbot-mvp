@@ -29,30 +29,28 @@ async function saveMaxCustomerPhone(user: User, phone: string) {
   });
 }
 
-type MaxKeyboardRows = Parameters<typeof MaxKeyboard.inlineKeyboard>[0];
-type MaxKeyboardButton = MaxKeyboardRows[number][number];
-type MaxRawButton =
-  | MaxKeyboardButton
-  | { contact_id?: number; text: string; type: "open_app"; web_app?: string };
-
-function inlineKeyboard(buttons: MaxRawButton[][]) {
-  return MaxKeyboard.inlineKeyboard(buttons as MaxKeyboardRows);
-}
-
-function openAppButton(text: string, webApp?: string): MaxRawButton {
-  return { text, type: "open_app", web_app: webApp };
-}
-
 function getContactKeyboard() {
-  return inlineKeyboard([[MaxKeyboard.button.requestContact(BOT_TEXTS.phoneButton)]]);
+  return MaxKeyboard.inlineKeyboard([[MaxKeyboard.button.requestContact(BOT_TEXTS.phoneButton)]]);
 }
 
 function getStartKeyboard() {
-  return inlineKeyboard([
-    [openAppButton(BOT_TEXTS.menuButton, getMaxMenuAppUrl())],
-    [openAppButton(BOT_TEXTS.helpButton, getMaxAiAppUrl())],
-    [openAppButton(BOT_TEXTS.cartButton, getMaxCartAppUrl())],
+  return MaxKeyboard.inlineKeyboard([
+    [MaxKeyboard.button.link(BOT_TEXTS.menuButton, getMaxMenuAppUrl())],
+    [MaxKeyboard.button.link(BOT_TEXTS.helpButton, getMaxAiAppUrl())],
+    [MaxKeyboard.button.link(BOT_TEXTS.cartButton, getMaxCartAppUrl())],
   ]);
+}
+
+function getMenuKeyboard() {
+  return MaxKeyboard.inlineKeyboard([[MaxKeyboard.button.link(BOT_TEXTS.menuButton, getMaxMenuAppUrl())]]);
+}
+
+function getAiKeyboard() {
+  return MaxKeyboard.inlineKeyboard([[MaxKeyboard.button.link(BOT_TEXTS.helpButton, getMaxAiAppUrl())]]);
+}
+
+function getCartKeyboard() {
+  return MaxKeyboard.inlineKeyboard([[MaxKeyboard.button.link(BOT_TEXTS.cartButton, getMaxCartAppUrl())]]);
 }
 
 // ---------------------------------------------------------------------------
@@ -102,7 +100,7 @@ export function getMaxBot() {
     }
 
     await ctx.reply(BOT_TEXTS.menu, {
-      attachments: [inlineKeyboard([[openAppButton(BOT_TEXTS.menuButton, getMaxMenuAppUrl())]])],
+      attachments: [getMenuKeyboard()],
     });
   });
 
@@ -115,7 +113,7 @@ export function getMaxBot() {
     }
 
     await ctx.reply(BOT_TEXTS.ai, {
-      attachments: [inlineKeyboard([[openAppButton(BOT_TEXTS.helpButton, getMaxAiAppUrl())]])],
+      attachments: [getAiKeyboard()],
     });
   });
 
@@ -128,7 +126,7 @@ export function getMaxBot() {
     }
 
     await ctx.reply(BOT_TEXTS.cart, {
-      attachments: [inlineKeyboard([[openAppButton(BOT_TEXTS.cartButton, getMaxCartAppUrl())]])],
+      attachments: [getCartKeyboard()],
     });
   });
 

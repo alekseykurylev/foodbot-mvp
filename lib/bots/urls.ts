@@ -23,13 +23,32 @@ export function getTelegramMiniAppUrl(path = ""): string {
   return `${getAppUrl()}${path}`;
 }
 
+export function getTelegramAiAppUrl(): string {
+  return getTelegramMiniAppUrl("/?start=ai");
+}
+
+export function getTelegramCartAppUrl(): string {
+  return getTelegramMiniAppUrl("/?start=cart");
+}
+
+export function getTelegramMenuAppUrl(): string {
+  return getTelegramMiniAppUrl("/?start=menu");
+}
+
 /** Диплинк мини-приложения для MAX */
 export function getMaxMiniAppUrl(payload?: string): string {
   const base = `https://max.ru/${getMaxBotName()}?startapp`;
   return payload ? `${base}=${payload}` : base;
 }
 
-/** URL страницы предложения */
-export function getProposalUrl(proposalId: number | string): string {
-  return `/proposal?id=${proposalId}`;
+export function getMaxAiAppUrl(): string {
+  return getMaxMiniAppUrl("ai");
+}
+
+export function getMaxCartAppUrl(): string {
+  return getMaxMiniAppUrl("cart");
+}
+
+export function getMaxMenuAppUrl(): string {
+  return getMaxMiniAppUrl("menu");
 }

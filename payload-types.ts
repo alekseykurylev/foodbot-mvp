@@ -345,12 +345,8 @@ export interface Order {
 export interface AiProposal {
   id: number;
   customer: number | Customer;
-  /**
-   * Telegram user ID или MAX user ID. Нужен только для сценария бота.
-   */
-  providerUserId: string;
   channel: 'telegram' | 'max';
-  status: 'awaiting_prompt' | 'processing' | 'ready' | 'no_match' | 'failed' | 'expired' | 'cancelled';
+  status: 'processing' | 'ready' | 'no_match' | 'failed';
   userPrompt?: string | null;
   /**
    * Почему AI выбрал именно эти товары.
@@ -369,8 +365,6 @@ export interface AiProposal {
     | boolean
     | null;
   totalAmount?: number | null;
-  expiresAt?: string | null;
-  processingStartedAt?: string | null;
   errorMessage?: string | null;
   aiRawResponse?:
     | {
@@ -678,15 +672,12 @@ export interface OrdersSelect<T extends boolean = true> {
  */
 export interface AiProposalsSelect<T extends boolean = true> {
   customer?: T;
-  providerUserId?: T;
   channel?: T;
   status?: T;
   userPrompt?: T;
   explanation?: T;
   items?: T;
   totalAmount?: T;
-  expiresAt?: T;
-  processingStartedAt?: T;
   errorMessage?: T;
   aiRawResponse?: T;
   model?: T;

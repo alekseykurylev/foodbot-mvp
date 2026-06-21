@@ -2,10 +2,9 @@ import { Bot, Keyboard as MaxKeyboard } from "@maxhub/max-bot-api";
 import type { Update, User } from "@maxhub/max-bot-api/types";
 import { MAX_BOT_COMMANDS } from "@/lib/bots/commands";
 import { getBotToken } from "@/lib/bots/shared";
-import { getMaxMiniAppUrl } from "@/lib/bots/urls";
+import { getMaxAiAppUrl, getMaxMenuAppUrl } from "@/lib/bots/urls";
 import { BOT_TEXTS } from "@/lib/bots/texts";
 import { saveBotCustomerPhone, upsertBotCustomer } from "@/lib/domain/customers";
-import { cancelProposalFlow, processProposalPrompt, startProposalFlow } from "@/lib/bots/ai";
 
 // ---------------------------------------------------------------------------
 // Хелперы
@@ -34,15 +33,10 @@ type MaxKeyboardRows = Parameters<typeof MaxKeyboard.inlineKeyboard>[0];
 type MaxKeyboardButton = MaxKeyboardRows[number][number];
 type MaxRawButton =
   | MaxKeyboardButton
-  | { type: "message"; text: string }
   | { contact_id?: number; text: string; type: "open_app"; web_app?: string };
 
 function inlineKeyboard(buttons: MaxRawButton[][]) {
   return MaxKeyboard.inlineKeyboard(buttons as MaxKeyboardRows);
-}
-
-function messageButton(text: string): MaxRawButton {
-  return { type: "message", text };
 }
 
 function openAppButton(text: string, webApp?: string): MaxRawButton {
@@ -55,18 +49,8 @@ function getContactKeyboard() {
 
 function getStartKeyboard() {
   return inlineKeyboard([
-    [openAppButton(BOT_TEXTS.menuButton, getMaxMiniAppUrl())],
-    [messageButton(BOT_TEXTS.helpButton)],
-  ]);
-}
-
-function getHelpKeyboard() {
-  return inlineKeyboard([[messageButton("Отмена")]]);
-}
-
-function getProposalKeyboard(proposalUrl: string) {
-  return inlineKeyboard([
-    [openAppButton(BOT_TEXTS.proposalButton, getMaxMiniAppUrl(proposalUrl))],
+    [openAppButton(BOT_TEXTS.menuButton, getMaxMenuAppUrl())],
+    [openAppButton(BOT_TEXTS.helpButton, getMaxAiAppUrl())],
   ]);
 }
 
@@ -87,12 +71,7 @@ export function getMaxBot() {
   // Первый запуск бота пользователем
   bot.on("bot_started", async (ctx) => {
     if (ctx.user) {
-      const customer = await upsertMaxCustomer(ctx.user);
-      await cancelProposalFlow({
-        channel: "max",
-        customer,
-        providerUserId: ctx.user.user_id,
-      });
+      await upsertMaxCustomer(ctx.user);
     }
 
     await ctx.reply(BOT_TEXTS.start, {
@@ -105,12 +84,7 @@ export function getMaxBot() {
     const sender = ctx.message.sender;
 
     if (sender) {
-      const customer = await upsertMaxCustomer(sender);
-      await cancelProposalFlow({
-        channel: "max",
-        customer,
-        providerUserId: sender.user_id,
-      });
+      await upsertMaxCustomer(sender);
     }
 
     await ctx.reply(BOT_TEXTS.start, {
@@ -123,36 +97,11 @@ export function getMaxBot() {
     const sender = ctx.message.sender;
 
     if (sender) {
-      const customer = await upsertMaxCustomer(sender);
-      await cancelProposalFlow({
-        channel: "max",
-        customer,
-        providerUserId: sender.user_id,
-      });
+      await upsertMaxCustomer(sender);
     }
 
     await ctx.reply(BOT_TEXTS.menu, {
-      attachments: [inlineKeyboard([[openAppButton(BOT_TEXTS.menuButton, getMaxMiniAppUrl())]])],
-    });
-  });
-
-  // /cancel
-  bot.command("cancel", async (ctx) => {
-    const sender = ctx.message.sender;
-
-    if (!sender) {
-      await ctx.reply(BOT_TEXTS.userNotIdentified);
-      return;
-    }
-
-    const customer = await upsertMaxCustomer(sender);
-    await cancelProposalFlow({
-      channel: "max",
-      customer,
-      providerUserId: sender.user_id,
-    });
-    await ctx.reply(BOT_TEXTS.helpCancelled, {
-      attachments: [getStartKeyboard()],
+      attachments: [inlineKeyboard([[openAppButton(BOT_TEXTS.menuButton, getMaxMenuAppUrl())]])],
     });
   });
 
@@ -166,62 +115,6 @@ export function getMaxBot() {
 
     await ctx.reply(BOT_TEXTS.phoneRequest, {
       attachments: [getContactKeyboard()],
-    });
-  });
-
-  // Callback: «Отмена»
-  bot.action(BOT_TEXTS.callbackCancel, async (ctx) => {
-    const user = ctx.user;
-
-    if (!user) {
-      return;
-    }
-
-    const customer = await upsertMaxCustomer(user);
-    await cancelProposalFlow({
-      channel: "max",
-      customer,
-      providerUserId: user.user_id,
-    });
-    await ctx.answerOnCallback({
-      message: {
-        attachments: [getStartKeyboard()],
-        text: BOT_TEXTS.helpCancelled,
-      },
-      notification: BOT_TEXTS.helpCancelled,
-    });
-  });
-
-  // Callback: «Подобрать заказ»
-  bot.action(BOT_TEXTS.callbackHelp, async (ctx) => {
-    const user = ctx.user;
-
-    if (!user) {
-      return;
-    }
-
-    const customer = await upsertMaxCustomer(user);
-
-    const result = await startProposalFlow({
-      channel: "max",
-      customer,
-      providerUserId: user.user_id,
-    });
-
-    if (result.status === "processing") {
-      await ctx.answerOnCallback({
-        message: { text: BOT_TEXTS.busy },
-        notification: BOT_TEXTS.busy,
-      });
-      return;
-    }
-
-    await ctx.answerOnCallback({
-      message: {
-        attachments: [getHelpKeyboard()],
-        text: BOT_TEXTS.helpPrompt,
-      },
-      notification: "Ожидаю описание заказа.",
     });
   });
 
@@ -259,87 +152,10 @@ export function getMaxBot() {
       return;
     }
 
-    const customer = await upsertMaxCustomer(sender);
-
-    if (text === BOT_TEXTS.helpButton) {
-      const result = await startProposalFlow({
-        channel: "max",
-        customer,
-        providerUserId: sender.user_id,
-      });
-
-      if (result.status === "processing") {
-        await ctx.reply(BOT_TEXTS.busy);
-        return;
-      }
-
-      await ctx.reply(BOT_TEXTS.helpPrompt, {
-        attachments: [getHelpKeyboard()],
-      });
-      return;
-    }
-
-    if (text === "Отмена") {
-      await cancelProposalFlow({
-        channel: "max",
-        customer,
-        providerUserId: sender.user_id,
-      });
-      await ctx.reply(BOT_TEXTS.helpCancelled, {
-        attachments: [getStartKeyboard()],
-      });
-      return;
-    }
-
-    const result = await processProposalPrompt({
-      channel: "max",
-      customer,
-      onProcessing: async () => {
-        await ctx.reply(BOT_TEXTS.processing);
-        ctx.sendAction?.("typing_on").catch(() => {});
-      },
-      providerUserId: sender.user_id,
-      userPrompt: text,
+    await upsertMaxCustomer(sender);
+    await ctx.reply(BOT_TEXTS.openAppHint, {
+      attachments: [getStartKeyboard()],
     });
-
-    if (result.status === "ready") {
-      await ctx.reply(BOT_TEXTS.proposalReady.replace("{total}", String(result.totalAmount)), {
-        attachments: [getProposalKeyboard(result.proposalUrl)],
-      });
-      return;
-    }
-
-    if (result.status === "no_match") {
-      await ctx.reply(result.explanation, {
-        attachments: [getStartKeyboard()],
-      });
-      return;
-    }
-
-    if (result.status === "busy") {
-      await ctx.reply(BOT_TEXTS.busy);
-      return;
-    }
-
-    if (result.status === "expired") {
-      await ctx.reply(BOT_TEXTS.helpExpired, {
-        attachments: [getStartKeyboard()],
-      });
-      return;
-    }
-
-    if (result.status === "missing") {
-      await ctx.reply(BOT_TEXTS.helpRequired, {
-        attachments: [getStartKeyboard()],
-      });
-      return;
-    }
-
-    if (result.status === "failed") {
-      await ctx.reply(result.explanation || BOT_TEXTS.proposalFailed, {
-        attachments: [getStartKeyboard()],
-      });
-    }
   });
 
   bot.catch((err, ctx) => {

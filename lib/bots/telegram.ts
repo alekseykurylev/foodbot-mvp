@@ -1,10 +1,9 @@
 import { Bot, GrammyError, HttpError, InlineKeyboard, Keyboard } from "grammy";
 import { BOT_COMMANDS } from "@/lib/bots/commands";
 import { getBotToken } from "@/lib/bots/shared";
-import { getTelegramMiniAppUrl } from "@/lib/bots/urls";
+import { getTelegramAiAppUrl, getTelegramMenuAppUrl } from "@/lib/bots/urls";
 import { BOT_TEXTS } from "@/lib/bots/texts";
 import { saveBotCustomerPhone, upsertBotCustomer } from "@/lib/domain/customers";
-import { cancelProposalFlow, processProposalPrompt, startProposalFlow } from "@/lib/bots/ai";
 
 // ---------------------------------------------------------------------------
 // Хелперы
@@ -41,17 +40,9 @@ function getContactKeyboard() {
 
 function getStartKeyboard() {
   return new InlineKeyboard([
-    [InlineKeyboard.webApp(BOT_TEXTS.menuButton, getTelegramMiniAppUrl())],
-    [InlineKeyboard.text(BOT_TEXTS.helpButton, BOT_TEXTS.callbackHelp)],
+    [InlineKeyboard.webApp(BOT_TEXTS.menuButton, getTelegramMenuAppUrl())],
+    [InlineKeyboard.webApp(BOT_TEXTS.helpButton, getTelegramAiAppUrl())],
   ]);
-}
-
-function getHelpKeyboard() {
-  return new InlineKeyboard().text("Отмена", BOT_TEXTS.callbackCancel);
-}
-
-function getProposalKeyboard(proposalUrl: string) {
-  return new InlineKeyboard().webApp(BOT_TEXTS.proposalButton, getTelegramMiniAppUrl(proposalUrl));
 }
 
 // ---------------------------------------------------------------------------
@@ -77,12 +68,7 @@ export function getTelegramBot() {
   // /start — приветствие с двумя кнопками
   instance.command("start", async (ctx) => {
     if (ctx.from) {
-      const customer = await upsertCustomer(ctx.from);
-      await cancelProposalFlow({
-        channel: "telegram",
-        customer,
-        providerUserId: ctx.from.id,
-      });
+      await upsertCustomer(ctx.from);
     }
 
     await ctx.reply(BOT_TEXTS.start, {
@@ -93,34 +79,11 @@ export function getTelegramBot() {
   // /menu — открыть мини-приложение
   instance.command("menu", async (ctx) => {
     if (ctx.from) {
-      const customer = await upsertCustomer(ctx.from);
-      await cancelProposalFlow({
-        channel: "telegram",
-        customer,
-        providerUserId: ctx.from.id,
-      });
+      await upsertCustomer(ctx.from);
     }
 
     await ctx.reply(BOT_TEXTS.menu, {
-      reply_markup: new InlineKeyboard().webApp(BOT_TEXTS.menuButton, getTelegramMiniAppUrl()),
-    });
-  });
-
-  // /cancel — отменить подбор
-  instance.command("cancel", async (ctx) => {
-    if (!ctx.from) {
-      await ctx.reply(BOT_TEXTS.userNotIdentified);
-      return;
-    }
-
-    const customer = await upsertCustomer(ctx.from);
-    await cancelProposalFlow({
-      channel: "telegram",
-      customer,
-      providerUserId: ctx.from.id,
-    });
-    await ctx.reply(BOT_TEXTS.helpCancelled, {
-      reply_markup: getStartKeyboard(),
+      reply_markup: new InlineKeyboard().webApp(BOT_TEXTS.menuButton, getTelegramMenuAppUrl()),
     });
   });
 
@@ -155,54 +118,6 @@ export function getTelegramBot() {
     });
   });
 
-  // Callback: кнопка «Подобрать заказ» / «Отмена»
-  instance.on("callback_query:data", async (ctx) => {
-    const data = ctx.callbackQuery.data;
-
-    if (!ctx.from) {
-      await ctx.answerCallbackQuery();
-      await ctx.reply(BOT_TEXTS.userNotIdentified);
-      return;
-    }
-
-    const customer = await upsertCustomer(ctx.from);
-
-    if (data === BOT_TEXTS.callbackCancel) {
-      await cancelProposalFlow({
-        channel: "telegram",
-        customer,
-        providerUserId: ctx.from.id,
-      });
-      await ctx.answerCallbackQuery();
-      await ctx.reply(BOT_TEXTS.helpCancelled, {
-        reply_markup: getStartKeyboard(),
-      });
-      return;
-    }
-
-    if (data !== BOT_TEXTS.callbackHelp) {
-      await ctx.answerCallbackQuery({ text: "Неизвестное действие." });
-      return;
-    }
-
-    const result = await startProposalFlow({
-      channel: "telegram",
-      customer,
-      providerUserId: ctx.from.id,
-    });
-
-    await ctx.answerCallbackQuery();
-
-    if (result.status === "processing") {
-      await ctx.reply(BOT_TEXTS.busy);
-      return;
-    }
-
-    await ctx.reply(BOT_TEXTS.helpPrompt, {
-      reply_markup: getHelpKeyboard(),
-    });
-  });
-
   // Текстовые сообщения
   instance.on("message:text", async (ctx) => {
     const text = ctx.message.text.trim();
@@ -217,56 +132,10 @@ export function getTelegramBot() {
       return;
     }
 
-    const customer = await upsertCustomer(ctx.from);
-    const result = await processProposalPrompt({
-      channel: "telegram",
-      customer,
-      onProcessing: async () => {
-        await ctx.reply(BOT_TEXTS.processing);
-        ctx.replyWithChatAction("typing").catch(() => {});
-      },
-      providerUserId: ctx.from.id,
-      userPrompt: text,
+    await upsertCustomer(ctx.from);
+    await ctx.reply(BOT_TEXTS.openAppHint, {
+      reply_markup: getStartKeyboard(),
     });
-
-    if (result.status === "ready") {
-      await ctx.reply(BOT_TEXTS.proposalReady.replace("{total}", String(result.totalAmount)), {
-        reply_markup: getProposalKeyboard(result.proposalUrl),
-      });
-      return;
-    }
-
-    if (result.status === "no_match") {
-      await ctx.reply(result.explanation, {
-        reply_markup: getStartKeyboard(),
-      });
-      return;
-    }
-
-    if (result.status === "busy") {
-      await ctx.reply(BOT_TEXTS.busy);
-      return;
-    }
-
-    if (result.status === "expired") {
-      await ctx.reply(BOT_TEXTS.helpExpired, {
-        reply_markup: getStartKeyboard(),
-      });
-      return;
-    }
-
-    if (result.status === "missing") {
-      await ctx.reply(BOT_TEXTS.helpRequired, {
-        reply_markup: getStartKeyboard(),
-      });
-      return;
-    }
-
-    if (result.status === "failed") {
-      await ctx.reply(result.explanation || BOT_TEXTS.proposalFailed, {
-        reply_markup: getStartKeyboard(),
-      });
-    }
   });
 
   // Ошибки

@@ -35,7 +35,7 @@ curl -X POST "https://platform-api.max.ru/subscriptions" \
   -H "Content-Type: application/json" \
   -d '{
   "url": "https://foodbot-mvp.vercel.app/api/max/webhook",
-  "update_types": ["message_created", "message_callback", "bot_started"],
+  "update_types": ["message_created", "bot_started"],
   "secret": "$MAX_WEBHOOK_SECRET"
 }'
 ```

@@ -1,7 +1,6 @@
 export const BOT_COMMANDS = [
   { command: "start", description: "Начать работу с ботом" },
   { command: "menu", description: "Открыть меню" },
-  { command: "cancel", description: "Отменить подбор заказа" },
   { command: "phone", description: "Поделиться телефоном" },
 ] as const;
 

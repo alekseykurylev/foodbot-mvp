@@ -11,7 +11,7 @@ export const AiProposals: CollectionConfig = {
   admin: {
     group: "CRM",
     useAsTitle: "id",
-    defaultColumns: ["customer", "channel", "providerUserId", "totalAmount", "status", "createdAt"],
+    defaultColumns: ["customer", "channel", "totalAmount", "status", "createdAt"],
   },
   defaultSort: "-createdAt",
   access: {
@@ -30,16 +30,6 @@ export const AiProposals: CollectionConfig = {
       maxDepth: 1,
     },
     {
-      name: "providerUserId",
-      type: "text",
-      label: "ID пользователя в канале",
-      required: true,
-      index: true,
-      admin: {
-        description: "Telegram user ID или MAX user ID. Нужен только для сценария бота.",
-      },
-    },
-    {
       name: "channel",
       type: "select",
       label: "Канал",
@@ -54,15 +44,12 @@ export const AiProposals: CollectionConfig = {
       type: "select",
       label: "Статус",
       required: true,
-      defaultValue: "awaiting_prompt",
+      defaultValue: "processing",
       options: [
-        { label: "Ожидает описание", value: "awaiting_prompt" },
         { label: "Обрабатывается", value: "processing" },
         { label: "Готово", value: "ready" },
         { label: "Нет совпадений", value: "no_match" },
         { label: "Ошибка", value: "failed" },
-        { label: "Просрочен", value: "expired" },
-        { label: "Отменен", value: "cancelled" },
       ],
     },
     {
@@ -94,26 +81,6 @@ export const AiProposals: CollectionConfig = {
       defaultValue: 0,
       admin: {
         step: 1,
-      },
-    },
-    {
-      name: "expiresAt",
-      type: "date",
-      label: "Ожидать описание до",
-      admin: {
-        date: {
-          pickerAppearance: "dayAndTime",
-        },
-      },
-    },
-    {
-      name: "processingStartedAt",
-      type: "date",
-      label: "Обработка началась",
-      admin: {
-        date: {
-          pickerAppearance: "dayAndTime",
-        },
       },
     },
     {

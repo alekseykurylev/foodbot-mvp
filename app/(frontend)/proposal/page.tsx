@@ -57,11 +57,7 @@ export default async function Page({ searchParams }: Props) {
           ? proposal.explanation || "Не удалось подобрать позиции из текущего меню."
           : proposal.status === "failed"
             ? proposal.errorMessage || "Не удалось подготовить предложение."
-            : proposal.status === "expired"
-              ? "Время ожидания описания заказа истекло."
-              : proposal.status === "cancelled"
-                ? "Подбор заказа отменён."
-                : "Предложение пока не готово.";
+            : "Предложение пока не готово.";
 
     return (
       <Container py="xl" size="sm">

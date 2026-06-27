@@ -1,4 +1,5 @@
 import { Container } from "@mantine/core";
+import { Menu } from "@/components/menu/menu";
 
 export default async function Page({
   searchParams,
@@ -7,5 +8,16 @@ export default async function Page({
 }) {
   const query = await searchParams;
 
-  return <Container>{JSON.stringify(query ?? null, null, 2)}</Container>;
+  return (
+    <>
+      <div>
+        <Container>
+          <Menu />
+        </Container>
+      </div>
+      <div>
+        <Container>{JSON.stringify(query ?? null, null, 2)}</Container>
+      </div>
+    </>
+  );
 }

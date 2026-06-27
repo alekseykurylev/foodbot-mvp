@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { ColorSchemeScript, MantineProvider, mantineHtmlProps } from "@mantine/core";
 import { Header } from "@/components/header/header";
+import { Layout, Main } from "@/components/layout/layout";
+import { Footer } from "@/components/footer/footer";
 import "@mantine/core/styles.css";
 import "./globals.css";
 
@@ -29,8 +31,11 @@ export default function RootLayout({
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
         <Script src="https://st.max.ru/js/max-web-app.js" strategy="beforeInteractive" />
         <MantineProvider>
-          <Header />
-          {children}
+          <Layout>
+            <Header />
+            <Main>{children}</Main>
+            <Footer />
+          </Layout>
         </MantineProvider>
       </body>
     </html>

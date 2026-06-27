@@ -30,12 +30,15 @@ curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook?url=https://you
 Регистрация MAX webhook:
 
 ```sh
-curl -X POST "https://platform-api.max.ru/subscriptions" \
-  -H "Authorization: $MAX_BOT_TOKEN" \
+curl -X POST "https://platform-api2.max.ru/subscriptions" \
+  -H "Authorization: {access_token}" \
   -H "Content-Type: application/json" \
   -d '{
-  "url": "https://foodbot-mvp.vercel.app/api/max/webhook",
+  "url": "https://your-domain.com/webhook",
   "update_types": ["message_created", "bot_started"],
-  "secret": "$MAX_WEBHOOK_SECRET"
+  "secret": "your_secret"
 }'
 ```
+
+Сертификаты Минцифры
+https://www.sberbank.ru/ru/person/kibrary/materialy-po-temam/sertifikaty-tls

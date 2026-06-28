@@ -22,7 +22,7 @@ export default function RootLayout({
     <html
       lang="ru"
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", inter.variable)}
+      className={cn("antialiased scroll-smooth", fontMono.variable, "font-sans", inter.variable)}
     >
       <body className="relative">
         <ThemeProvider>

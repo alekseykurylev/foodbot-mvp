@@ -20,9 +20,13 @@ async function MenuItems() {
 
   return (
     <div className="scroll-fade-x scrollbar-none overflow-x-auto">
-      <ul className="flex gap-3">
-        {categories.map((item) => (
-          <li key={item.id}>{item.name}</li>
+      <ul className="flex gap-5">
+        {categories.map((category) => (
+          <li key={category.id}>
+            <a href={`#${category.slug}`} className="font-medium">
+              {category.name}
+            </a>
+          </li>
         ))}
       </ul>
     </div>

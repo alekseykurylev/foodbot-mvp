@@ -24,7 +24,7 @@ async function ProductsList() {
     <>
       {productCategories.map(({ category, products }) => {
         return (
-          <div key={category.id} className="space-y-10">
+          <section id={category.slug} key={category.id} className="space-y-10 scroll-mt-30">
             <h2 className="text-2xl font-bold">{category.name}</h2>
 
             <ItemGroup className="grid grid-cols-2 lg:grid-cols-3 gap-4">
@@ -68,7 +68,7 @@ async function ProductsList() {
                 );
               })}
             </ItemGroup>
-          </div>
+          </section>
         );
       })}
     </>

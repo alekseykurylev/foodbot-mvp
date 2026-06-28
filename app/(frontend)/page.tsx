@@ -17,12 +17,12 @@ export default function Page() {
           <Suspense fallback={<Menu.ItemsSkeleton />}>
             <Menu.Items />
           </Suspense>
-          <Button size="lg" className="h-11 px-5 py-3 text-base max-lg:hidden">
+          <Button size="lg" className="h-11 px-5 py-4 text-base max-lg:hidden">
             <ShoppingBagIcon /> Корзина
           </Button>
         </Menu.Root>
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] pt-6">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px] pt-6">
           <Products.Root>
             <Suspense fallback={<Products.Skeleton />}>
               <Products.List />
@@ -30,7 +30,7 @@ export default function Page() {
           </Products.Root>
           <div>
             <aside className="sticky top-36">
-              <Card className="aspect-square bg-amber-50">
+              <Card className="aspect-square bg-fuchsia-700 text-white">
                 <CardHeader>
                   <CardTitle className="text-2xl font-bold">
                     В мессенджерах <br />

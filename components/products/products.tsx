@@ -14,7 +14,11 @@ import Image from "next/image";
 import { Button } from "../ui/button";
 
 function ProductsRoot({ children, ...props }: ComponentProps<"div">) {
-  return <div className="space-y-10">{children}</div>;
+  return (
+    <div className="space-y-10" {...props}>
+      {children}
+    </div>
+  );
 }
 
 async function ProductsList() {

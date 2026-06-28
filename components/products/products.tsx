@@ -10,18 +10,11 @@ import {
   ItemActions,
 } from "@/components/ui/item";
 import { Skeleton } from "../ui/skeleton";
-import { Container } from "../ui/container";
 import Image from "next/image";
 import { Button } from "../ui/button";
 
 function ProductsRoot({ children, ...props }: ComponentProps<"div">) {
-  return (
-    <div {...props}>
-      <Container>
-        <div className="space-y-10">{children}</div>
-      </Container>
-    </div>
-  );
+  return <div className="space-y-10">{children}</div>;
 }
 
 async function ProductsList() {
@@ -34,7 +27,7 @@ async function ProductsList() {
           <div key={category.id} className="space-y-10">
             <h2 className="text-2xl font-bold">{category.name}</h2>
 
-            <ItemGroup className="grid grid-cols-3 gap-4">
+            <ItemGroup className="grid grid-cols-2 lg:grid-cols-3 gap-4">
               {products.map((product) => {
                 const productImage = getMediaImage(product.image, {
                   fallbackAlt: product.name,
@@ -58,7 +51,9 @@ async function ProductsList() {
                       )}
                     </ItemHeader>
                     <ItemContent className="gap-3 items-center">
-                      <ItemTitle className="text-xl font-semibold">{product.name}</ItemTitle>
+                      <ItemTitle className="text-xl font-semibold text-center">
+                        {product.name}
+                      </ItemTitle>
                       <ItemActions>
                         <Button size="lg" variant="secondary" className="h-11 px-5 py-3 text-lg">
                           <span className="font-medium">{product.price} &#8381;</span>

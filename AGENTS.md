@@ -17,7 +17,6 @@ This project uses the Payload skill installed by `npx skills add https://github.
 - Next.js with React; check exact versions in `package.json`.
 - TypeScript, App Router conventions, and ESLint.
 - Payload CMS with PostgreSQL; check exact versions in `package.json`.
-- Mantine for UI components; check exact versions in `package.json`.
 - Package manager: pnpm.
 
 ## Commands
@@ -61,13 +60,6 @@ This project uses the Payload skill installed by `npx skills add https://github.
 - Prefer Payload APIs and generated types over ad hoc database access.
 - When changing Payload collections, fields, or config, update generated types and migrations when needed.
 - Keep `payload-types.ts` and import map changes tied to the schema/config changes that require them.
-
-## Mantine
-
-- This project uses Mantine; check exact package versions in `package.json`.
-- Before adding or changing Mantine components, styling, forms, or theme code, consult the Mantine LLM documentation: `https://mantine.dev/llms.txt`.
-- Prefer Mantine components, hooks, and `@mantine/form` patterns over custom UI/form implementations when they fit the task.
-- Follow existing MantineProvider, theme, CSS modules, and PostCSS patterns in this repo.
 
 ## Code Style
 

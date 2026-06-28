@@ -1,6 +1,6 @@
 import type { CollectionConfig } from "payload";
 
-import { generateSlug } from "@/lib/utils/slug";
+import { generateSlug } from "@/lib/helpers/slug";
 import { isAuthenticated } from "@/lib/cms/access";
 
 export const Products: CollectionConfig = {

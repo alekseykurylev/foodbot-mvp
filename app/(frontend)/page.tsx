@@ -1,23 +1,19 @@
-import { Container } from "@mantine/core";
-import { Menu } from "@/components/menu/menu";
+import { Button } from "@/components/ui/button";
 
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
-  const query = await searchParams;
-
+export default function Page() {
   return (
-    <>
-      <div>
-        <Container>
-          <Menu />
-        </Container>
+    <div className="flex min-h-svh p-6">
+      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
+        <div>
+          <h1 className="font-medium">Project ready!</h1>
+          <p>You may now add components and start building.</p>
+          <p>We&apos;ve already added the button component for you.</p>
+          <Button className="mt-2">Button</Button>
+        </div>
+        <div className="font-mono text-xs text-muted-foreground">
+          (Press <kbd>d</kbd> to toggle dark mode)
+        </div>
       </div>
-      <div>
-        <Container>{JSON.stringify(query ?? null, null, 2)}</Container>
-      </div>
-    </>
+    </div>
   );
 }

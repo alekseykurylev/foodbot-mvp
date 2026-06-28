@@ -1,16 +1,15 @@
-import type { Metadata } from "next";
-import Script from "next/script";
-import { ColorSchemeScript, MantineProvider, mantineHtmlProps } from "@mantine/core";
-import { Header } from "@/components/header/header";
-import { Layout, Main } from "@/components/layout/layout";
-import { Footer } from "@/components/footer/footer";
-import "@mantine/core/styles.css";
-import "./globals.css";
+import { Geist_Mono, Inter } from "next/font/google";
 
-export const metadata: Metadata = {
-  title: "foodbot-mvp",
-  description: "MVP бота для заказа еды",
-};
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { cn } from "@/lib/utils";
+
+const inter = Inter({ subsets: ["cyrillic"], variable: "--font-sans" });
+
+const fontMono = Geist_Mono({
+  subsets: ["cyrillic"],
+  variable: "--font-mono",
+});
 
 export default function RootLayout({
   children,
@@ -18,25 +17,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" {...mantineHtmlProps}>
-      <head>
-        <ColorSchemeScript />
-        <link rel="shortcut icon" href="/favicon.svg" />
-        <meta
-          name="viewport"
-          content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
-        />
-      </head>
+    <html
+      lang="ru"
+      suppressHydrationWarning
+      className={cn("antialiased", fontMono.variable, "font-sans", inter.variable)}
+    >
       <body>
-        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
-        <Script src="https://st.max.ru/js/max-web-app.js" strategy="beforeInteractive" />
-        <MantineProvider>
-          <Layout>
-            <Header />
-            <Main>{children}</Main>
-            <Footer />
-          </Layout>
-        </MantineProvider>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

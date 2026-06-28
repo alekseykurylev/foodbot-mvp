@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingBasketIcon } from "lucide-react";
 import { Products } from "@/components/products/products";
 import { Container } from "@/components/ui/container";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function Page() {
   return (
@@ -16,7 +17,7 @@ export default function Page() {
           <Suspense fallback={<Menu.ItemsSkeleton />}>
             <Menu.Items />
           </Suspense>
-          <Button size="lg">
+          <Button size="lg" className="h-11 px-5 py-3 text-base max-lg:hidden">
             <ShoppingBasketIcon /> Корзина
           </Button>
         </Menu.Root>
@@ -29,7 +30,14 @@ export default function Page() {
           </Products.Root>
           <div>
             <aside className="sticky top-20">
-              <div className="aspect-square bg-amber-300">123</div>
+              <Card className="aspect-square">
+                <CardContent>
+                  <p>
+                    The card component supports a size prop that can be set to &quot;sm&quot; for a
+                    more compact appearance.
+                  </p>
+                </CardContent>
+              </Card>
             </aside>
           </div>
         </div>

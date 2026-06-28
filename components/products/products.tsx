@@ -51,11 +51,15 @@ async function ProductsList() {
                       )}
                     </ItemHeader>
                     <ItemContent className="gap-3 items-center">
-                      <ItemTitle className="text-xl font-semibold text-center">
+                      <ItemTitle className="lg:text-xl font-semibold text-center">
                         {product.name}
                       </ItemTitle>
-                      <ItemActions>
-                        <Button size="lg" variant="secondary" className="h-11 px-5 py-3 text-lg">
+                      <ItemActions className="flex-col w-full">
+                        <Button
+                          size="lg"
+                          variant="secondary"
+                          className="h-11 px-5 py-3 text-lg max-lg:w-full"
+                        >
                           <span className="font-medium">{product.price} &#8381;</span>
                         </Button>
                       </ItemActions>

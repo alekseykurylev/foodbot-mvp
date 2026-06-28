@@ -1,7 +1,5 @@
 import { ComponentProps } from "react";
 import { getPayloadLocal } from "@/lib/cms/payload-local";
-import { Button } from "@/components/ui/button";
-import { ShoppingBasketIcon } from "lucide-react";
 import { Container } from "../ui/container";
 import { Skeleton } from "../ui/skeleton";
 

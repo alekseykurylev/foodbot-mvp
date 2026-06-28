@@ -7,7 +7,7 @@ function MenuRoot({ className, ...props }: ComponentProps<"nav">) {
   return (
     <nav
       className={cn(
-        "sticky w-full top-0 z-10 bg-white py-6 flex justify-between gap-4 h-14 items-center",
+        "sticky w-full top-16 z-10 bg-white py-6 flex justify-between gap-4 h-14 items-center",
         className,
       )}
       {...props}

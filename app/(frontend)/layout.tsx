@@ -22,8 +22,14 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("antialiased", fontMono.variable, "font-sans", inter.variable)}
     >
-      <body>
-        <ThemeProvider>{children}</ThemeProvider>
+      <body className="relative">
+        <ThemeProvider>
+          <div className="isolate flex min-h-svh flex-col">
+            <header>header</header>
+            <main className="flex min-h-0 flex-1 flex-col">{children}</main>
+            <footer>footer</footer>
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );

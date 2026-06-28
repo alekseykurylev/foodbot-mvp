@@ -14,7 +14,7 @@ export function Banners() {
         {Array.from({ length: 10 }).map((_, index) => (
           <CarouselItem key={index} className="basis-1/3 lg:basis-1/5 pl-1">
             <div className="p-1">
-              <Card className="bg-amber-100">
+              <Card className="bg-linear-65 from-purple-500 to-pink-500 text-white">
                 <CardContent className="flex aspect-square items-center justify-center p-6">
                   <span className="text-2xl font-semibold">{index + 1}</span>
                 </CardContent>

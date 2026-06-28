@@ -25,19 +25,16 @@ export const Media: CollectionConfig = {
       {
         name: "thumbnail",
         width: 400,
-        height: 300,
         position: "centre",
       },
       {
         name: "card",
         width: 768,
-        height: 576,
         position: "centre",
       },
       {
         name: "wide",
         width: 1200,
-        height: undefined,
         position: "centre",
       },
     ],

@@ -3,6 +3,7 @@ import { Banners } from "@/components/banners/banners";
 import { Menu } from "@/components/menu/menu";
 import { Button } from "@/components/ui/button";
 import { ShoppingBasketIcon } from "lucide-react";
+import { Products } from "@/components/products/products";
 
 export default function Page() {
   return (
@@ -17,6 +18,12 @@ export default function Page() {
           <ShoppingBasketIcon /> Корзина
         </Button>
       </Menu.Root>
+
+      <Products.Root>
+        <Suspense fallback={<Products.Skeleton />}>
+          <Products.List />
+        </Suspense>
+      </Products.Root>
     </>
   );
 }

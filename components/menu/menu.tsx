@@ -1,11 +1,12 @@
 import { ComponentProps } from "react";
-import { getPayloadLocal } from "@/lib/cms/payload-local";
+import { getActiveCategories } from "@/lib/domain/categories";
 import { Container } from "../ui/container";
 import { Skeleton } from "../ui/skeleton";
+import { cn } from "@/lib/utils";
 
-function MenuRoot({ children, ...props }: ComponentProps<"div">) {
+function MenuRoot({ children, className, ...props }: ComponentProps<"div">) {
   return (
-    <div className="sticky py-6" {...props}>
+    <div className={cn("sticky top-0 z-10 bg-white py-6", className)} {...props}>
       <Container>
         <div className="flex justify-between gap-4 h-10 items-center">{children}</div>
       </Container>
@@ -14,14 +15,12 @@ function MenuRoot({ children, ...props }: ComponentProps<"div">) {
 }
 
 async function MenuItems() {
-  const payload = await getPayloadLocal();
-
-  const menu = await payload.find({ collection: "categories" });
+  const categories = await getActiveCategories();
 
   return (
     <div className="scroll-fade-x scrollbar-none overflow-x-auto ">
       <ul className="flex gap-3">
-        {menu.docs.map((item) => (
+        {categories.map((item) => (
           <li key={item.id}>{item.name}</li>
         ))}
       </ul>

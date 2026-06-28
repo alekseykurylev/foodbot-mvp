@@ -1,7 +1,12 @@
 packages: []
 
 allowBuilds:
+  esbuild: set this to true or false
+  msw: false
   sharp: true
   unrs-resolver: true
-  msw: false
-  esbuild: set this to true or false
+
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+  - unrs-resolver

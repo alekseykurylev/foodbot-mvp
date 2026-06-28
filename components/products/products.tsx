@@ -31,14 +31,14 @@ async function ProductsList() {
           <section id={category.slug} key={category.id} className="space-y-10 scroll-mt-30">
             <h2 className="text-2xl font-bold">{category.name}</h2>
 
-            <ItemGroup className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            <ItemGroup className="grid grid-cols-2 lg:grid-cols-3 gap-6">
               {products.map((product) => {
                 const productImage = getMediaImage(product.image, {
                   fallbackAlt: product.name,
                 });
 
                 return (
-                  <Item key={product.id}>
+                  <Item key={product.id} className="p-0">
                     <ItemHeader>
                       {productImage ? (
                         <div className="relative aspect-square w-full overflow-hidden rounded-lg">
@@ -55,7 +55,7 @@ async function ProductsList() {
                       )}
                     </ItemHeader>
                     <ItemContent className="gap-3 items-center">
-                      <ItemTitle className="lg:text-xl font-semibold text-center">
+                      <ItemTitle className="lg:text-lg px-2 font-semibold text-center">
                         {product.name}
                       </ItemTitle>
                       <ItemActions className="flex-col w-full">

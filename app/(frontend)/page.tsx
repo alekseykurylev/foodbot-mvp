@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingBagIcon } from "lucide-react";
 import { Products } from "@/components/products/products";
 import { Container } from "@/components/ui/container";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Page() {
   return (
@@ -29,13 +29,16 @@ export default function Page() {
             </Suspense>
           </Products.Root>
           <div>
-            <aside className="sticky top-20">
-              <Card className="aspect-square">
+            <aside className="sticky top-36">
+              <Card className="aspect-square bg-amber-50">
+                <CardHeader>
+                  <CardTitle className="text-2xl font-bold">
+                    В мессенджерах <br />
+                    выгоднее
+                  </CardTitle>
+                </CardHeader>
                 <CardContent>
-                  <p>
-                    The card component supports a size prop that can be set to &quot;sm&quot; for a
-                    more compact appearance.
-                  </p>
+                  <p className="text-base">Заказывай через макс или telegram и получайте бонусы</p>
                 </CardContent>
               </Card>
             </aside>

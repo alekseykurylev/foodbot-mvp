@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { Banners } from "@/components/banners/banners";
 import { Menu } from "@/components/menu/menu";
 import { Button } from "@/components/ui/button";
-import { ShoppingBasketIcon } from "lucide-react";
+import { ShoppingBagIcon } from "lucide-react";
 import { Products } from "@/components/products/products";
 import { Container } from "@/components/ui/container";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,7 +18,7 @@ export default function Page() {
             <Menu.Items />
           </Suspense>
           <Button size="lg" className="h-11 px-5 py-3 text-base max-lg:hidden">
-            <ShoppingBasketIcon /> Корзина
+            <ShoppingBagIcon /> Корзина
           </Button>
         </Menu.Root>
 

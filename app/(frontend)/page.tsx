@@ -23,9 +23,9 @@ export default function Page() {
         </Button>
       </Menu.Root>
 
-      <div className="bg-white rounded-b-4xl xl:rounded-b-[60px]">
+      <div className="bg-white rounded-b-4xl xl:rounded-b-[60px] py-6">
         <Container>
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px] pt-6">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
             <Products.Root>
               <Suspense fallback={<Products.Skeleton />}>
                 <Products.List />

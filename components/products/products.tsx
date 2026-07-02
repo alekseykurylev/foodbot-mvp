@@ -46,7 +46,8 @@ async function ProductsList() {
                             src={productImage.src}
                             alt={productImage.alt}
                             fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                            quality={60}
                             className="object-contain"
                           />
                         </div>

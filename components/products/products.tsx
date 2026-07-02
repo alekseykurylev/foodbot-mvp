@@ -62,7 +62,7 @@ async function ProductsList() {
                         <Button
                           size="lg"
                           variant="secondary"
-                          className="h-11 px-5 py-3 text-lg max-lg:w-full"
+                          className="lg:h-11 lg:px-5 lg:py-3 lg:text-lg"
                         >
                           <span className="font-medium">{product.price} &#8381;</span>
                         </Button>

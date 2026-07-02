@@ -2,16 +2,17 @@ import { ComponentProps } from "react";
 import { getActiveCategories } from "@/lib/domain/categories";
 import { Skeleton } from "../ui/skeleton";
 import { cn } from "@/lib/utils";
+import { Container } from "../ui/container";
 
-function MenuRoot({ className, ...props }: ComponentProps<"nav">) {
+function MenuRoot({ className, children, ...props }: ComponentProps<"nav">) {
   return (
-    <nav
-      className={cn(
-        "sticky w-full top-16 z-10 bg-white py-6 flex justify-between gap-4 h-14 items-center",
-        className,
-      )}
-      {...props}
-    />
+    <nav className={cn("bg-sidebar-accent top-16 sticky z-10 ", className)} {...props}>
+      <div className="w-full  bg-white py-6 rounded-t-4xl xl:rounded-t-[60px]">
+        <Container>
+          <div className="flex justify-between gap-4 items-center">{children}</div>
+        </Container>
+      </div>
+    </nav>
   );
 }
 
@@ -23,7 +24,7 @@ async function MenuItems() {
       <ul className="flex gap-5">
         {categories.map((category) => (
           <li key={category.id}>
-            <a href={`#${category.slug}`} className="font-medium">
+            <a href={`#${category.slug}`} className="font-medium hover:text-primary">
               {category.name}
             </a>
           </li>

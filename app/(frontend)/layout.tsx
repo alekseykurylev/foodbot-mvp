@@ -24,7 +24,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("antialiased scroll-smooth", fontMono.variable, "font-sans", inter.variable)}
     >
-      <body className="relative">
+      <body className="relative bg-sidebar-accent">
         <ThemeProvider>
           <div className="isolate flex min-h-svh flex-col">
             <Header />

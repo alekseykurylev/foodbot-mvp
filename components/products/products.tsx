@@ -13,6 +13,9 @@ import { Skeleton } from "../ui/skeleton";
 import Image from "next/image";
 import { Button } from "../ui/button";
 
+const blurDataURL =
+  "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAKAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABgcI/8QAIhAAAgEDBAMBAAAAAAAAAAAAAQIDBAURAAYSIQcTMUH/xAAVAQEBAAAAAAAAAAAAAAAAAAADBP/EABkRAAIDAQAAAAAAAAAAAAAAAAECAAMRIf/aAAwDAQACEQMRAD8Aq9t3Bb7hU1FPBLIZYQDIrRMuAf3OdNNu+RbRa7XDQS1VY8kKhGkMBUMQMZxk4z+aUbf8d2i3XGorYpq1pZwA4aYEDA/MYGl+4/HdnulzqK2Kauikn5c1SYEKZxnGQDjP5rRVlYnJz//2Q==";
+
 function ProductsRoot({ children, ...props }: ComponentProps<"div">) {
   return (
     <div className="space-y-10" {...props}>
@@ -49,6 +52,8 @@ async function ProductsList() {
                             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                             quality={60}
                             className="object-contain"
+                            placeholder="blur"
+                            blurDataURL={blurDataURL}
                           />
                         </div>
                       ) : (

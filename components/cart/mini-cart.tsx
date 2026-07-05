@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/lib/hooks/use-mobile";
 import { Separator } from "@/components/ui/separator";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Trash, Minus, Plus } from "@hugeicons/core-free-icons";
+import { Trash, Minus, Plus, ArrowRight02Icon } from "@hugeicons/core-free-icons";
 
 const stepperClasses =
   "flex h-full w-8 items-center justify-center border border-neutral-950 bg-white bg-clip-padding text-neutral-950 outline-0 select-none dark:border-white dark:bg-neutral-950 dark:text-white hover:not-data-disabled:bg-neutral-100 dark:hover:not-data-disabled:bg-neutral-800 active:not-data-disabled:bg-neutral-200 dark:active:not-data-disabled:bg-neutral-700 data-disabled:border-neutral-500 data-disabled:text-neutral-500 dark:data-disabled:border-neutral-400 dark:data-disabled:text-neutral-400";
@@ -80,11 +80,14 @@ export function MiniCart({ children }: { children: ReactElement }) {
           </ItemGroup>
         </div>
         <DrawerFooter>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-4 text-lg font-bold">
             <div>Сумма заказа</div>
             <div>3 005 ₽</div>
           </div>
-          <Button size="lg">К оформлению заказа</Button>
+          <Button size="xl" className="relative">
+            К оформлению заказа
+            <HugeiconsIcon className="absolute right-4" icon={ArrowRight02Icon} strokeWidth={2} />
+          </Button>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

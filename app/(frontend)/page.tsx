@@ -41,9 +41,7 @@ export default function Page() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-base">
-                      Заказывай через макс или telegram и получайте бонусы
-                    </p>
+                    <p className="text-base">Заказывай через макс или telegram со скидкой!</p>
                   </CardContent>
                 </Card>
               </aside>

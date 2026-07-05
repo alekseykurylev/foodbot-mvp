@@ -66,6 +66,7 @@ async function ProductsList() {
                       </ItemTitle>
                       <ItemActions className="flex-col w-full">
                         <AddToCartButton
+                          image={productImage}
                           productId={product.id}
                           productName={product.name}
                           price={product.price}

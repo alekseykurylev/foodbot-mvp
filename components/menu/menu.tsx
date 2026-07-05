@@ -7,7 +7,7 @@ import { Container } from "../ui/container";
 function MenuRoot({ className, children, ...props }: ComponentProps<"nav">) {
   return (
     <nav className={cn("bg-sidebar-accent top-16 sticky z-10 ", className)} {...props}>
-      <div className="w-full  bg-white py-6 rounded-t-4xl xl:rounded-t-[60px]">
+      <div className="w-full bg-white py-6 rounded-t-[48px] xl:rounded-t-[60px]">
         <Container>
           <div className="flex justify-between gap-4 items-center">{children}</div>
         </Container>

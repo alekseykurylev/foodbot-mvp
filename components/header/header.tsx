@@ -1,6 +1,7 @@
 import { Logo } from "../logo";
 import { Container } from "../ui/container";
-import { MenuIcon } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Menu01Icon } from "@hugeicons/core-free-icons";
 
 export function Header() {
   return (
@@ -11,7 +12,7 @@ export function Header() {
             <Logo />
             <span className="font-bold">FoodBot</span>
           </div>
-          <MenuIcon />
+          <HugeiconsIcon icon={Menu01Icon} strokeWidth={2} />
         </div>
       </Container>
     </header>

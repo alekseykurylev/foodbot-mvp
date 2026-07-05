@@ -23,7 +23,7 @@ export default function Page() {
         </MiniCart>
       </Menu.Root>
 
-      <div className="bg-white rounded-b-4xl xl:rounded-b-[60px] py-6">
+      <div className="bg-white rounded-b-[48px] xl:rounded-b-[60px] py-6">
         <Container>
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
             <Products.Root>

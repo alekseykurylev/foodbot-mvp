@@ -22,10 +22,11 @@ import {
   ItemTitle,
   ItemActions,
 } from "@/components/ui/item";
-import { Trash, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/lib/hooks/use-mobile";
 import { Separator } from "@/components/ui/separator";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Trash, Minus, Plus } from "@hugeicons/core-free-icons";
 
 const stepperClasses =
   "flex h-full w-8 items-center justify-center border border-neutral-950 bg-white bg-clip-padding text-neutral-950 outline-0 select-none dark:border-white dark:bg-neutral-950 dark:text-white hover:not-data-disabled:bg-neutral-100 dark:hover:not-data-disabled:bg-neutral-800 active:not-data-disabled:bg-neutral-200 dark:active:not-data-disabled:bg-neutral-700 data-disabled:border-neutral-500 data-disabled:text-neutral-500 dark:data-disabled:border-neutral-400 dark:data-disabled:text-neutral-400";
@@ -53,7 +54,7 @@ export function MiniCart({ children }: { children: ReactElement }) {
               </ItemContent>
               <ItemActions>
                 <Button size="icon-sm" variant="outline" className="rounded-full">
-                  <Trash />
+                  <HugeiconsIcon icon={Trash} strokeWidth={2} />
                 </Button>
               </ItemActions>
               <Separator className="basis-full" />
@@ -66,11 +67,11 @@ export function MiniCart({ children }: { children: ReactElement }) {
                 >
                   <NumberField.Group className="flex h-8">
                     <NumberField.Decrement className={`${stepperClasses} border-r-0`}>
-                      <Minus />
+                      <HugeiconsIcon icon={Minus} strokeWidth={2} />
                     </NumberField.Decrement>
                     <NumberField.Input className="h-full w-[5ch] text-center border border-neutral-950 bg-white px-2 text-sm font-normal text-neutral-950 tabular-nums any-pointer-coarse:text-base dark:border-white dark:bg-neutral-950 dark:text-white focus:z-1 focus:outline-2 focus:-outline-offset-1 focus:outline-neutral-950 dark:focus:outline-white" />
                     <NumberField.Increment className={`${stepperClasses} border-l-0`}>
-                      <Plus />
+                      <HugeiconsIcon icon={Plus} strokeWidth={2} />
                     </NumberField.Increment>
                   </NumberField.Group>
                 </NumberField.Root>

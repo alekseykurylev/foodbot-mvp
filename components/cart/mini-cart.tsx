@@ -68,7 +68,8 @@ export function MiniCart({ children }: { children: ReactElement }) {
               : "Корзина"}
           </DrawerTitle>
         </DrawerHeader>
-        <div className="flex-1 p-4 flex flex-col gap-6">
+
+        <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-6">
           {items.length > 0 ? (
             <ItemGroup className="gap-4">
               {items.map((item) => (

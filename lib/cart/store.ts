@@ -15,14 +15,18 @@ type AddCartItemInput = {
   quantity?: number;
 };
 
-type CartState = {
-  items: CartItem[];
+type CartActions = {
   addItem: (item: AddCartItemInput) => void;
   clearCart: () => void;
   decrementItem: (productId: number) => void;
   incrementItem: (productId: number) => void;
   removeItem: (productId: number) => void;
   setItemQuantity: (productId: number, quantity: number) => void;
+};
+
+type CartState = {
+  items: CartItem[];
+  actions: CartActions;
 };
 
 function normalizeQuantity(quantity: number) {
@@ -41,66 +45,68 @@ function updateItemQuantity(items: CartItem[], productId: number, quantity: numb
   );
 }
 
-export const useCartStore = create<CartState>()(
+const useCartStoreBase = create<CartState>()(
   persist(
     (set) => ({
       items: [],
-      addItem: ({ productId, quantity = 1 }) => {
-        set((state) => {
-          const normalizedQuantity = normalizeQuantity(quantity);
-          const existingItem = state.items.find((item) => item.productId === productId);
+      actions: {
+        addItem: ({ productId, quantity = 1 }) => {
+          set((state) => {
+            const normalizedQuantity = normalizeQuantity(quantity);
+            const existingItem = state.items.find((item) => item.productId === productId);
 
-          if (!existingItem) {
+            if (!existingItem) {
+              return {
+                items: [...state.items, { productId, quantity: normalizedQuantity }],
+              };
+            }
+
             return {
-              items: [...state.items, { productId, quantity: normalizedQuantity }],
+              items: state.items.map((item) =>
+                item.productId === productId
+                  ? { ...item, quantity: item.quantity + normalizedQuantity }
+                  : item,
+              ),
             };
-          }
-
-          return {
+          });
+        },
+        clearCart: () => {
+          set({ items: [] });
+        },
+        decrementItem: (productId) => {
+          set((state) => ({
+            items: state.items
+              .map((item) =>
+                item.productId === productId ? { ...item, quantity: item.quantity - 1 } : item,
+              )
+              .filter((item) => item.quantity > 0),
+          }));
+        },
+        incrementItem: (productId) => {
+          set((state) => ({
             items: state.items.map((item) =>
-              item.productId === productId
-                ? { ...item, quantity: item.quantity + normalizedQuantity }
-                : item,
+              item.productId === productId ? { ...item, quantity: item.quantity + 1 } : item,
             ),
-          };
-        });
-      },
-      clearCart: () => {
-        set({ items: [] });
-      },
-      decrementItem: (productId) => {
-        set((state) => ({
-          items: state.items
-            .map((item) =>
-              item.productId === productId ? { ...item, quantity: item.quantity - 1 } : item,
-            )
-            .filter((item) => item.quantity > 0),
-        }));
-      },
-      incrementItem: (productId) => {
-        set((state) => ({
-          items: state.items.map((item) =>
-            item.productId === productId ? { ...item, quantity: item.quantity + 1 } : item,
-          ),
-        }));
-      },
-      removeItem: (productId) => {
-        set((state) => ({
-          items: state.items.filter((item) => item.productId !== productId),
-        }));
-      },
-      setItemQuantity: (productId, quantity) => {
-        set((state) => {
-          if (quantity <= 0) {
-            return {
-              items: state.items.filter((item) => item.productId !== productId),
-            };
-          }
+          }));
+        },
+        removeItem: (productId) => {
+          set((state) => ({
+            items: state.items.filter((item) => item.productId !== productId),
+          }));
+        },
+        setItemQuantity: (productId, quantity) => {
+          set((state) => {
+            if (quantity <= 0) {
+              return {
+                items: state.items.filter((item) => item.productId !== productId),
+              };
+            }
 
-          return {
-            items: updateItemQuantity(state.items, productId, quantity),
-          };
-        });
+            return {
+              items: updateItemQuantity(state.items, productId, quantity),
+            };
+          });
+        },
       },
     }),
     {
@@ -112,11 +118,22 @@ export const useCartStore = create<CartState>()(
   ),
 );
 
-export function selectCartTotalItems(state: CartState) {
-  return state.items.reduce((total, item) => total + item.quantity, 0);
+export function useCartItems() {
+  return useCartStoreBase((state) => state.items);
 }
 
-export function selectCartItemQuantity(productId: number) {
-  return (state: CartState) =>
-    state.items.find((item) => item.productId === productId)?.quantity ?? 0;
+export function useCartTotalItems() {
+  return useCartStoreBase((state) =>
+    state.items.reduce((total, item) => total + item.quantity, 0),
+  );
+}
+
+export function useCartItemQuantity(productId: number) {
+  return useCartStoreBase(
+    (state) => state.items.find((item) => item.productId === productId)?.quantity ?? 0,
+  );
+}
+
+export function useCartActions() {
+  return useCartStoreBase((state) => state.actions);
 }

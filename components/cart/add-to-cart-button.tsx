@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { selectCartItemQuantity, useCartStore } from "@/lib/cart/store";
+import { useCartActions, useCartItemQuantity } from "@/lib/cart/store";
 
 type AddToCartButtonProps = {
   productId: number;
@@ -10,8 +10,8 @@ type AddToCartButtonProps = {
 };
 
 export function AddToCartButton({ productId, productName, price }: AddToCartButtonProps) {
-  const addItem = useCartStore((state) => state.addItem);
-  const quantity = useCartStore(selectCartItemQuantity(productId));
+  const { addItem } = useCartActions();
+  const quantity = useCartItemQuantity(productId);
 
   return (
     <Button

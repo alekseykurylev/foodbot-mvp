@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 import { Banners } from "@/components/banners/banners";
 import { Menu } from "@/components/menu/menu";
-import { Button } from "@/components/ui/button";
-import { ShoppingBagIcon } from "lucide-react";
 import { Products } from "@/components/products/products";
 import { Container } from "@/components/ui/container";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MiniCart } from "@/components/cart/mini-cart";
+import { MiniCartTrigger } from "@/components/cart/mini-cart-trigger";
 
 export default function Page() {
   return (
@@ -18,9 +18,9 @@ export default function Page() {
         <Suspense fallback={<Menu.ItemsSkeleton />}>
           <Menu.Items />
         </Suspense>
-        <Button size="lg" className="h-11 px-5 py-4 text-base max-lg:hidden">
-          <ShoppingBagIcon /> Корзина
-        </Button>
+        <MiniCart>
+          <MiniCartTrigger />
+        </MiniCart>
       </Menu.Root>
 
       <div className="bg-white rounded-b-4xl xl:rounded-b-[60px] py-6">

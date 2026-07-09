@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyMaxInitData } from "@/lib/mini-app/verify/max";
+import { verifyMaxInitData } from "@/modules/mini-app/verify/max";
 
 export async function POST(request: Request) {
   const token = process.env.MAX_BOT_TOKEN;

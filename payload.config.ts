@@ -5,13 +5,13 @@ import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 import { buildConfig } from "payload";
 import path from "path";
 import { fileURLToPath } from "url";
-import { AiProposals } from "./collections/ai-proposals";
-import { Categories } from "./collections/categories";
-import { Customers } from "./collections/customers";
-import { Media } from "./collections/media";
-import { Orders } from "./collections/orders";
-import { Products } from "./collections/products";
-import { Users } from "./collections/users";
+import { Media } from "./common/cms/payload/media";
+import { AiProposals } from "./modules/ai/payload/ai-proposals";
+import { Categories } from "./modules/catalog/payload/categories";
+import { Products } from "./modules/catalog/payload/products";
+import { Customers } from "./modules/customers/payload/customers";
+import { Orders } from "./modules/orders/payload/orders";
+import { Users } from "./modules/users/payload/users";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -24,8 +24,8 @@ export default buildConfig({
     },
     components: {
       graphics: {
-        Logo: "/components/logo-payload",
-        Icon: "/components/icon-payload",
+        Logo: "/shell/payload/admin/logo-payload",
+        Icon: "/shell/payload/admin/icon-payload",
       },
     },
     meta: {

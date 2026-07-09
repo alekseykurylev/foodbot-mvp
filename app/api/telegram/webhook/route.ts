@@ -1,5 +1,5 @@
 import { webhookCallback } from "grammy";
-import { getTelegramBot } from "@/lib/bots/telegram";
+import { getTelegramBot } from "@/modules/bots/telegram";
 
 export const maxDuration = 60;
 

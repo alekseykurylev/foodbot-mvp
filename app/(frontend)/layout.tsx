@@ -1,10 +1,10 @@
 import { Geist_Mono, Inter } from "next/font/google";
 
-import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
-import { cn } from "@/lib/utils";
-import { Header } from "@/components/header/header";
-import { Footer } from "@/components/footer/footer";
+import "@/global/styles/globals.css";
+import { ThemeProvider } from "@/shell/providers/theme-provider";
+import { cn } from "@/common/utils/cn";
+import { Header } from "@/shell/layout/header/header";
+import { Footer } from "@/shell/layout/footer/footer";
 
 const inter = Inter({ subsets: ["cyrillic"], variable: "--font-sans" });
 

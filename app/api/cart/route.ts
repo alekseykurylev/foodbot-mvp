@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { findActiveCart } from "@/lib/domain/orders";
-import type { MiniAppProvider } from "@/lib/mini-app/types";
-import { verifyMiniAppSession } from "@/lib/mini-app/verify/session";
-import { findCustomerByBotUser } from "@/lib/domain/customers";
+import { findActiveCart } from "@/modules/orders/server/orders";
+import type { MiniAppProvider } from "@/modules/mini-app/types";
+import { verifyMiniAppSession } from "@/modules/mini-app/verify/session";
+import { findCustomerByBotUser } from "@/modules/customers/server/customers";
 
 type CartRequestBody = {
   initData?: string;

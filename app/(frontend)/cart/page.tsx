@@ -1,3 +1,5 @@
+import { CartScreen } from "@/screens/cart";
+
 export default async function Page() {
-  return <div>Cart</div>;
+  return <CartScreen />;
 }

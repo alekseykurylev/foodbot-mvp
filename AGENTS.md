@@ -40,6 +40,20 @@ This project uses the Payload skill installed by `npx skills add https://github.
 - Keep server and client component boundaries explicit.
 - Prefer existing project routing, data-loading, and component patterns before introducing new ones.
 
+## Project Structure
+
+This project uses an adapted FEOD-style structure with Next.js App Router:
+
+- `app/` — Next.js routing contract only: route segments, `page.tsx`, `layout.tsx`, route handlers, metadata, params, redirects, and `notFound()`.
+- `screens/` — screen composition imported by `app/**/page.tsx`; keep route-agnostic React composition here.
+- `modules/` — business modules: domain UI, server reads/writes, local model state, bot logic, integrations, and module-owned Payload collections.
+- `common/` — shared non-business primitives: UI components, hooks, helpers, CMS utilities, and generic utils.
+- `shell/` — application shell: global layout chrome, providers, and top-level integration adapters such as Payload admin graphics.
+- `global/` — global styles and global-only assets or shims.
+- `migrations/`, `payload-types.ts`, and Payload import maps are framework/generated files; change them only when required by schema/config changes or generation commands.
+
+Do not create a top-level `pages/` folder. Next.js treats it as Pages Router even when the project uses App Router. Use `screens/` for page/screen composition.
+
 ## React Performance
 
 - When changing React components, data loading, hooks, client/server boundaries, or bundle-sensitive code, consult Vercel React Best Practices: `https://github.com/vercel-labs/react-best-practices`.

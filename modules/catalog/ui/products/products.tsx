@@ -1,16 +1,9 @@
 import { ComponentProps } from "react";
+import Image from "next/image";
 import { getActiveProductCategories } from "@/modules/catalog/server/products";
 import { getMediaImage } from "@/common/helpers/media";
-import {
-  Item,
-  ItemContent,
-  ItemGroup,
-  ItemHeader,
-  ItemTitle,
-  ItemActions,
-} from "@/common/ui/item";
+import { Item, ItemContent, ItemGroup, ItemHeader, ItemTitle, ItemActions } from "@/common/ui/item";
 import { Skeleton } from "@/common/ui/skeleton";
-import Image from "next/image";
 import { AddToCartButton } from "@/modules/cart/ui/add-to-cart-button";
 
 const blurDataURL =
@@ -34,7 +27,7 @@ async function ProductsList() {
           <section id={category.slug} key={category.id} className="space-y-10 scroll-mt-40">
             <h2 className="text-2xl font-bold">{category.name}</h2>
 
-            <ItemGroup className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+            <ItemGroup className="grid grid-cols-2 md:grid-cols-3 gap-6">
               {products.map((product) => {
                 const productImage = getMediaImage(product.image, {
                   fallbackAlt: product.name,

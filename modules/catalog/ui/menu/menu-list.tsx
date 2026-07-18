@@ -1,11 +1,19 @@
 "use client";
 
-import { NavigationMenuItem, NavigationMenuLink } from "@/common/ui/navigation-menu";
+import {
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+} from "@/common/ui/navigation-menu";
 
-export function MenuItem({ slug, name }: { slug: string; name: string }) {
+export function MenuList({ items }: { items: { id: number; slug: string; name: string }[] }) {
   return (
-    <NavigationMenuItem>
-      <NavigationMenuLink href={`#${slug}`}>{name}</NavigationMenuLink>
-    </NavigationMenuItem>
+    <NavigationMenuList>
+      {items.map((item) => (
+        <NavigationMenuItem key={item.id}>
+          <NavigationMenuLink href={`#${item.slug}`}>{item.name}</NavigationMenuLink>
+        </NavigationMenuItem>
+      ))}
+    </NavigationMenuList>
   );
 }

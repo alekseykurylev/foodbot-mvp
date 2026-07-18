@@ -22,9 +22,14 @@ export function useActiveItemScroll(activeId: string | null) {
     const itemCenter = itemRect.left + itemRect.width / 2;
     const containerCenter = containerRect.left + containerRect.width / 2;
     const scrollDelta = itemCenter - containerCenter;
+    const maxScrollLeft = Math.max(0, scrollContainer.scrollWidth - scrollContainer.clientWidth);
+    const targetScrollLeft = Math.min(
+      Math.max(scrollContainer.scrollLeft + scrollDelta, 0),
+      maxScrollLeft,
+    );
 
-    if (Math.abs(scrollDelta) > 1) {
-      scrollContainer.scrollBy({ left: scrollDelta, behavior: "smooth" });
+    if (Math.abs(targetScrollLeft - scrollContainer.scrollLeft) > 1) {
+      scrollContainer.scrollTo({ left: targetScrollLeft, behavior: "smooth" });
     }
   }, [activeId]);
 

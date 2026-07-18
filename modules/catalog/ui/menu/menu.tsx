@@ -1,18 +1,14 @@
 import { getActiveCategories } from "@/modules/catalog/server/categories";
 import { Skeleton } from "@/common/ui/skeleton";
-import { NavigationMenu, NavigationMenuList } from "@/common/ui/navigation-menu";
-import { MenuItem } from "@/modules/catalog/ui/menu/menu-item";
+import { NavigationMenu } from "@/common/ui/navigation-menu";
+import { MenuList } from "@/modules/catalog/ui/menu/menu-list";
 
 export async function Menu() {
   const categories = await getActiveCategories();
 
   return (
     <NavigationMenu className="scroll-fade-x scrollbar-none overflow-x-auto">
-      <NavigationMenuList>
-        {categories.map((category) => (
-          <MenuItem key={category.id} slug={category.slug} name={category.name} />
-        ))}
-      </NavigationMenuList>
+      <MenuList items={categories} />
     </NavigationMenu>
   );
 }

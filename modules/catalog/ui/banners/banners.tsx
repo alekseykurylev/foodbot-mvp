@@ -2,6 +2,7 @@ import Image from "next/image";
 
 import { getMediaImage } from "@/common/helpers/media";
 import { Carousel, CarouselContent, CarouselItem } from "@/common/ui/carousel";
+import { Skeleton } from "@/common/ui/skeleton";
 import { getActiveBanners } from "@/modules/catalog/server/banners";
 
 export async function Banners() {
@@ -52,5 +53,22 @@ export async function Banners() {
         })}
       </CarouselContent>
     </Carousel>
+  );
+}
+
+export function BannersSkeleton() {
+  return (
+    <div className="mx-auto grid w-full max-w-7xl grid-cols-2 gap-2 px-4 sm:px-6 lg:grid-cols-6 lg:px-8">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <Skeleton
+          key={index}
+          className={
+            index > 1
+              ? "hidden aspect-35/44 w-full rounded-xl lg:block"
+              : "aspect-35/44 w-full rounded-xl"
+          }
+        />
+      ))}
+    </div>
   );
 }

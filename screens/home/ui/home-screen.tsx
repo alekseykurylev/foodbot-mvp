@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 
 import { AsideBanner } from "@/modules/catalog/ui/aside-banner";
-import { Banners } from "@/modules/catalog/ui/banners/banners";
+import { Banners, BannersSkeleton } from "@/modules/catalog/ui/banners/banners";
 import { Menu } from "@/modules/catalog/ui/menu/menu";
 import { Products } from "@/modules/catalog/ui/products/products";
 import { MiniCart } from "@/modules/cart/ui/mini-cart";
@@ -12,7 +12,7 @@ export function HomeScreen() {
   return (
     <>
       <div className="py-4">
-        <Suspense fallback={null}>
+        <Suspense fallback={<BannersSkeleton />}>
           <Banners />
         </Suspense>
       </div>

@@ -3,6 +3,7 @@ import { getActiveCategories } from "@/modules/catalog/server/categories";
 import { Skeleton } from "@/common/ui/skeleton";
 import { cn } from "@/common/utils/cn";
 import { Container } from "@/common/ui/container";
+import { Button } from "@/common/ui/button";
 
 function MenuRoot({ className, children, ...props }: ComponentProps<"nav">) {
   return (
@@ -24,9 +25,12 @@ async function MenuItems() {
       <ul className="flex gap-5">
         {categories.map((category) => (
           <li key={category.id}>
-            <a href={`#${category.slug}`} className="font-medium hover:text-primary">
-              {category.name}
-            </a>
+            <Button
+              size="lg"
+              variant="ghost"
+              nativeButton={false}
+              render={<a href={`#${category.slug}`}>{category.name}</a>}
+            />
           </li>
         ))}
       </ul>

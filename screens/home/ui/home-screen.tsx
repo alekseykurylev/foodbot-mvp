@@ -2,7 +2,7 @@ import { Suspense } from "react";
 
 import { AsideBanner } from "@/modules/catalog/ui/aside-banner";
 import { Banners, BannersSkeleton } from "@/modules/catalog/ui/banners/banners";
-import { Menu } from "@/modules/catalog/ui/menu/menu";
+import { Menu, MenuSkeleton } from "@/modules/catalog/ui/menu/menu";
 import { Products } from "@/modules/catalog/ui/products/products";
 import { MiniCart } from "@/modules/cart/ui/mini-cart";
 import { MiniCartTrigger } from "@/modules/cart/ui/mini-cart-trigger";
@@ -17,14 +17,20 @@ export function HomeScreen() {
         </Suspense>
       </div>
 
-      <Menu.Root>
-        <Suspense fallback={<Menu.ItemsSkeleton />}>
-          <Menu.Items />
-        </Suspense>
-        <MiniCart>
-          <MiniCartTrigger />
-        </MiniCart>
-      </Menu.Root>
+      <div className="bg-sidebar-accent top-16 sticky z-10">
+        <div className="w-full bg-white py-6 rounded-t-[48px] xl:rounded-t-[60px]">
+          <Container>
+            <div className="flex justify-between gap-4 items-center">
+              <Suspense fallback={<MenuSkeleton />}>
+                <Menu />
+              </Suspense>
+              <MiniCart>
+                <MiniCartTrigger />
+              </MiniCart>
+            </div>
+          </Container>
+        </div>
+      </div>
 
       <div className="rounded-b-[48px] bg-white py-6 xl:rounded-b-[60px]">
         <Container>

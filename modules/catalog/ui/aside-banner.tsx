@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/common/ui/card";
 
-export function FooterPromoCard() {
+export function AsideBanner() {
   return (
     <Card className="aspect-square bg-fuchsia-700 text-white">
       <CardHeader>

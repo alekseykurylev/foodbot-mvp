@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import { FooterPromoCard } from "@/modules/catalog/ui/footer-promo-card";
+import { AsideBanner } from "@/modules/catalog/ui/aside-banner";
 import { Banners } from "@/modules/catalog/ui/banners/banners";
 import { Menu } from "@/modules/catalog/ui/menu/menu";
 import { Products } from "@/modules/catalog/ui/products/products";
@@ -34,7 +34,7 @@ export function HomeScreen() {
             </Products.Root>
             <div>
               <aside className="sticky top-44">
-                <FooterPromoCard />
+                <AsideBanner />
               </aside>
             </div>
           </div>

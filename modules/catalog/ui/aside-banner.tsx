@@ -1,17 +1,21 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/common/ui/card";
+import Image from "next/image";
 
 export function AsideBanner() {
   return (
-    <Card className="aspect-square bg-fuchsia-700 text-white">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">
-          В мессенджерах <br />
-          выгоднее
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-base">Заказывай через макс или telegram со скидкой!</p>
-      </CardContent>
-    </Card>
+    <a
+      href="#"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block overflow-hidden rounded-xl"
+    >
+      <Image
+        src="/019ea6dc.webp"
+        alt="AsideBanner"
+        width={900}
+        height={1165}
+        loading="eager"
+        className="h-auto w-full"
+      />
+    </a>
   );
 }

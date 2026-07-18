@@ -2,7 +2,6 @@ import Image from "next/image";
 
 import { getMediaImage } from "@/common/helpers/media";
 import { Carousel, CarouselContent, CarouselItem } from "@/common/ui/carousel";
-import { Skeleton } from "@/common/ui/skeleton";
 import { getActiveBanners } from "@/modules/catalog/server/banners";
 
 export async function Banners() {
@@ -40,7 +39,7 @@ export async function Banners() {
           );
 
           return (
-            <CarouselItem key={banner.id} className="basis-1/2 pl-2 lg:basis-1/6">
+            <CarouselItem key={banner.id} className="basis-1/2 pl-2 md:basis-1/4 lg:basis-1/6">
               {banner.link ? (
                 <a href={banner.link} className="block">
                   {bannerImage}
@@ -58,15 +57,11 @@ export async function Banners() {
 
 export function BannersSkeleton() {
   return (
-    <div className="mx-auto grid w-full max-w-7xl grid-cols-2 gap-2 px-4 sm:px-6 lg:grid-cols-6 lg:px-8">
+    <div className="mx-auto grid w-full max-w-7xl grid-cols-2 gap-2 px-4 sm:px-6 md:grid-cols-4 lg:grid-cols-6 lg:px-8">
       {Array.from({ length: 6 }).map((_, index) => (
-        <Skeleton
+        <div
           key={index}
-          className={
-            index > 1
-              ? "hidden aspect-35/44 w-full rounded-xl lg:block"
-              : "aspect-35/44 w-full rounded-xl"
-          }
+          className={`aspect-35/44 w-full rounded-xl bg-white ${index < 2 ? "" : index < 4 ? "hidden md:block" : "hidden lg:block"}`}
         />
       ))}
     </div>

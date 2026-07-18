@@ -12,7 +12,9 @@ export function HomeScreen() {
   return (
     <>
       <div className="py-4">
-        <Banners />
+        <Suspense fallback={null}>
+          <Banners />
+        </Suspense>
       </div>
 
       <Menu.Root>

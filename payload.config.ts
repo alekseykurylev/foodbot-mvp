@@ -7,6 +7,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { Media } from "./common/cms/payload/media";
 import { AiProposals } from "./modules/ai/payload/ai-proposals";
+import { Banners } from "./modules/catalog/payload/banners";
 import { Categories } from "./modules/catalog/payload/categories";
 import { Products } from "./modules/catalog/payload/products";
 import { Customers } from "./modules/customers/payload/customers";
@@ -41,7 +42,7 @@ export default buildConfig({
       defaultTimezone: "Europe/Moscow",
     },
   },
-  collections: [Users, Media, Categories, Products, Customers, Orders, AiProposals],
+  collections: [Users, Media, Categories, Products, Banners, Customers, Orders, AiProposals],
   plugins: [
     vercelBlobStorage({
       collections: {

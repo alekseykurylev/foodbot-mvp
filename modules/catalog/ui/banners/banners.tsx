@@ -1,13 +1,16 @@
-import { Card, CardContent } from "@/common/ui/card";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  // CarouselNext,
-  // CarouselPrevious,
-} from "@/common/ui/carousel";
+import Image from "next/image";
 
-export function Banners() {
+import { getMediaImage } from "@/common/helpers/media";
+import { Carousel, CarouselContent, CarouselItem } from "@/common/ui/carousel";
+import { getActiveBanners } from "@/modules/catalog/server/banners";
+
+export async function Banners() {
+  const banners = await getActiveBanners();
+
+  if (!banners.length) {
+    return null;
+  }
+
   return (
     <Carousel
       opts={{
@@ -16,20 +19,38 @@ export function Banners() {
       className="w-full mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"
     >
       <CarouselContent className="-ml-1">
-        {Array.from({ length: 10 }).map((_, index) => (
-          <CarouselItem key={index} className="basis-1/2 lg:basis-1/6 pl-1">
-            <div className="p-1">
-              <Card className="bg-blue-300 text-white">
-                <CardContent className="flex aspect-square items-center justify-center p-6">
-                  <span className="text-2xl font-semibold">{index + 1}</span>
-                </CardContent>
-              </Card>
+        {banners.map((banner) => {
+          const image = getMediaImage(banner.image, { size: "wide" });
+
+          if (!image) {
+            return null;
+          }
+
+          const bannerImage = (
+            <div className="relative aspect-35/44 w-full overflow-hidden rounded-xl">
+              <Image
+                src={image.src}
+                alt={image.alt}
+                fill
+                sizes="(max-width: 1024px) 50vw, 16vw"
+                className="object-cover"
+              />
             </div>
-          </CarouselItem>
-        ))}
+          );
+
+          return (
+            <CarouselItem key={banner.id} className="basis-1/2 pl-2 lg:basis-1/6">
+              {banner.link ? (
+                <a href={banner.link} className="block">
+                  {bannerImage}
+                </a>
+              ) : (
+                bannerImage
+              )}
+            </CarouselItem>
+          );
+        })}
       </CarouselContent>
-      {/*<CarouselPrevious />
-      <CarouselNext />*/}
     </Carousel>
   );
 }

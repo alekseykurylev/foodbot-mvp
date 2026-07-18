@@ -71,6 +71,7 @@ export interface Config {
     media: Media;
     categories: Category;
     products: Product;
+    banners: Banner;
     customers: Customer;
     orders: Order;
     'ai-proposals': AiProposal;
@@ -85,6 +86,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
+    banners: BannersSelect<false> | BannersSelect<true>;
     customers: CustomersSelect<false> | CustomersSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
     'ai-proposals': AiProposalsSelect<false> | AiProposalsSelect<true>;
@@ -276,6 +278,22 @@ export interface Product {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "banners".
+ */
+export interface Banner {
+  id: number;
+  image: number | Media;
+  /**
+   * Необязательно. Укажите внутренний путь или полный адрес с http:// или https://.
+   */
+  link?: string | null;
+  isActive?: boolean | null;
+  sortOrder?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "customers".
  */
 export interface Customer {
@@ -418,6 +436,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'products';
         value: number | Product;
+      } | null)
+    | ({
+        relationTo: 'banners';
+        value: number | Banner;
       } | null)
     | ({
         relationTo: 'customers';
@@ -603,6 +625,18 @@ export interface ProductsSelect<T extends boolean = true> {
         aiKeywords?: T;
       };
   tags?: T;
+  sortOrder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "banners_select".
+ */
+export interface BannersSelect<T extends boolean = true> {
+  image?: T;
+  link?: T;
+  isActive?: T;
   sortOrder?: T;
   updatedAt?: T;
   createdAt?: T;

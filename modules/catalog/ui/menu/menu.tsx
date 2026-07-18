@@ -7,7 +7,7 @@ export async function Menu() {
   const categories = await getActiveCategories();
 
   return (
-    <NavigationMenu className="scroll-fade-x scrollbar-none overflow-x-auto">
+    <NavigationMenu className="scroll-fade-x scrollbar-none justify-start overflow-x-auto">
       <MenuList items={categories} />
     </NavigationMenu>
   );

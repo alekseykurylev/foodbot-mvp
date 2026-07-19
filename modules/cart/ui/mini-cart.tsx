@@ -1,15 +1,9 @@
 "use client";
 
 import type { ReactElement } from "react";
-import {
-  Cancel01Icon,
-  Delete02Icon,
-  MinusSignIcon,
-  PlusSignIcon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useCart } from "@payloadcms/plugin-ecommerce/client/react";
 import Image from "next/image";
+import { Minus, Plus, XIcon } from "lucide-react";
 import { useMoney } from "@/common/ecommerce/use-money";
 import { getMediaImage } from "@/common/helpers/media";
 import { useIsMobile } from "@/common/hooks/use-mobile";
@@ -88,8 +82,7 @@ export function MiniCart({ children }: { children: ReactElement }) {
                 const productName = product?.name ?? `Товар #${productID}`;
                 const image = getMediaImage(product?.image, { fallbackAlt: productName });
                 const price = variant?.priceInRUB ?? product?.priceInRUB;
-                const compareAtPrice =
-                  variant?.compareAtPriceInRUB ?? product?.compareAtPriceInRUB;
+                const compareAtPrice = variant?.compareAtPriceInRUB ?? product?.compareAtPriceInRUB;
                 const hasCompareAtPrice =
                   typeof price === "number" &&
                   typeof compareAtPrice === "number" &&
@@ -131,7 +124,7 @@ export function MiniCart({ children }: { children: ReactElement }) {
                         disabled={isLoading}
                         onClick={() => void removeItem(itemID)}
                       >
-                        <HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
+                        <XIcon />
                       </Button>
                     </ItemActions>
                     <Separator className="basis-full" />
@@ -144,7 +137,7 @@ export function MiniCart({ children }: { children: ReactElement }) {
                         disabled={isLoading}
                         onClick={() => void decrementItem(itemID)}
                       >
-                        <HugeiconsIcon icon={MinusSignIcon} strokeWidth={2} />
+                        <Minus />
                       </Button>
                       <span className="min-w-8 text-center font-bold">{item.quantity}</span>
                       <Button
@@ -155,7 +148,7 @@ export function MiniCart({ children }: { children: ReactElement }) {
                         disabled={isLoading}
                         onClick={() => void incrementItem(itemID)}
                       >
-                        <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} />
+                        <Plus />
                       </Button>
                     </div>
                   </Item>
@@ -174,12 +167,10 @@ export function MiniCart({ children }: { children: ReactElement }) {
             <div>{formatMoney(cart?.subtotal)}</div>
           </div>
           <Button
-            size="xl"
             variant="outline"
             disabled={items.length === 0 || isLoading}
             onClick={() => void clearCart()}
           >
-            <HugeiconsIcon icon={Delete02Icon} strokeWidth={2} />
             Очистить корзину
           </Button>
         </DrawerFooter>

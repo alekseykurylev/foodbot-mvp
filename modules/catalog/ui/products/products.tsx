@@ -79,10 +79,10 @@ function ProductsSkeleton() {
   return (
     <ItemGroup className="grid grid-cols-2 md:grid-cols-3 gap-6">
       {Array.from({ length: 6 }).map((_, index) => (
-        <Item key={index}>
-          <Skeleton className="aspect-square w-full" />
-          <Skeleton className="h-4 w-2/3" />
-          <Skeleton className="h-10 w-full" />
+        <Item key={index} className="flex flex-col justify-center">
+          <Skeleton className="aspect-square rounded-full w-full" />
+          <Skeleton className="h-5 w-2/3" />
+          <Skeleton className="h-11 w-1/4" />
         </Item>
       ))}
     </ItemGroup>

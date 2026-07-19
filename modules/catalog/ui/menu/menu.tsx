@@ -22,7 +22,7 @@ export function MenuSkeleton() {
   return (
     <div className="flex gap-4">
       {Array.from({ length: 5 }).map((_, index) => (
-        <Skeleton key={index} className="h-11 w-28 rounded-full" />
+        <Skeleton key={index} className="h-8 w-20 rounded-full" />
       ))}
     </div>
   );

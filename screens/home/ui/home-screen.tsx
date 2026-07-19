@@ -40,7 +40,7 @@ export function HomeScreen() {
               </Suspense>
             </Products.Root>
             <div>
-              <aside className="sticky top-44">Aside Banner</aside>
+              <aside className="sticky top-44">Banner</aside>
             </div>
           </div>
         </Container>

@@ -1,8 +1,10 @@
-"use server";
+import "server-only";
+
+import { cache } from "react";
 
 import { getPayloadLocal } from "@/common/cms/payload-local";
 
-export async function getPublishedProductCategories() {
+export const getPublishedProductCategories = cache(async () => {
   const payload = await getPayloadLocal();
   const [categories, products] = await Promise.all([
     payload.find({
@@ -31,4 +33,4 @@ export async function getPublishedProductCategories() {
 
     return categoryProducts.length > 0 ? [{ category, products: categoryProducts }] : [];
   });
-}
+});

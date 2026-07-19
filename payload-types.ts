@@ -392,7 +392,11 @@ export interface Variant {
   product: number | Product;
   options: (number | VariantOption)[];
   priceInRUBEnabled?: boolean | null;
-  priceInRUB?: number | null;
+  priceInRUB: number;
+  /**
+   * Необязательно. Должна быть выше текущей цены.
+   */
+  compareAtPriceInRUB?: number | null;
   updatedAt: string;
   createdAt: string;
   deletedAt?: string | null;
@@ -422,7 +426,11 @@ export interface Product {
     totalDocs?: number;
   };
   priceInRUBEnabled?: boolean | null;
-  priceInRUB?: number | null;
+  priceInRUB: number;
+  /**
+   * Необязательно. Должна быть выше текущей цены.
+   */
+  compareAtPriceInRUB?: number | null;
   updatedAt: string;
   createdAt: string;
   deletedAt?: string | null;
@@ -841,6 +849,7 @@ export interface VariantsSelect<T extends boolean = true> {
   options?: T;
   priceInRUBEnabled?: T;
   priceInRUB?: T;
+  compareAtPriceInRUB?: T;
   updatedAt?: T;
   createdAt?: T;
   deletedAt?: T;
@@ -888,6 +897,7 @@ export interface ProductsSelect<T extends boolean = true> {
   variants?: T;
   priceInRUBEnabled?: T;
   priceInRUB?: T;
+  compareAtPriceInRUB?: T;
   updatedAt?: T;
   createdAt?: T;
   deletedAt?: T;

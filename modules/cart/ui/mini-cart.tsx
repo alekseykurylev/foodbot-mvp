@@ -1,10 +1,15 @@
 "use client";
 
-import { Cancel01Icon, Delete02Icon, MinusSignIcon, PlusSignIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { useCart, useCurrency } from "@payloadcms/plugin-ecommerce/client/react";
 import type { ReactElement } from "react";
-
+import {
+  Cancel01Icon,
+  Delete02Icon,
+  MinusSignIcon,
+  PlusSignIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { useCart } from "@payloadcms/plugin-ecommerce/client/react";
+import { useMoney } from "@/common/ecommerce/use-money";
 import { useIsMobile } from "@/common/hooks/use-mobile";
 import { Button } from "@/common/ui/button";
 import {
@@ -48,15 +53,8 @@ function getProductID(product: unknown) {
 
 export function MiniCart({ children }: { children: ReactElement }) {
   const isMobile = useIsMobile();
-  const {
-    cart,
-    clearCart,
-    decrementItem,
-    incrementItem,
-    isLoading,
-    removeItem,
-  } = useCart();
-  const { formatCurrency } = useCurrency();
+  const { cart, clearCart, decrementItem, incrementItem, isLoading, removeItem } = useCart();
+  const { formatMoney } = useMoney();
   const items = cart?.items ?? [];
   const totalItems = items.reduce((total, item) => total + item.quantity, 0);
 
@@ -67,7 +65,7 @@ export function MiniCart({ children }: { children: ReactElement }) {
         <DrawerHeader>
           <DrawerTitle className="text-xl">
             {totalItems > 0
-              ? `${formatProductsCount(totalItems)} на ${formatCurrency(cart?.subtotal)}`
+              ? `${formatProductsCount(totalItems)} на ${formatMoney(cart?.subtotal)}`
               : "Корзина"}
           </DrawerTitle>
         </DrawerHeader>
@@ -134,7 +132,7 @@ export function MiniCart({ children }: { children: ReactElement }) {
         <DrawerFooter>
           <div className="flex items-center justify-between gap-4 text-lg font-bold">
             <div>Сумма заказа</div>
-            <div>{formatCurrency(cart?.subtotal)}</div>
+            <div>{formatMoney(cart?.subtotal)}</div>
           </div>
           <Button
             size="xl"

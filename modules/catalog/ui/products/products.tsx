@@ -6,6 +6,7 @@ import { Item, ItemActions, ItemContent, ItemGroup, ItemHeader, ItemTitle } from
 import { Skeleton } from "@/common/ui/skeleton";
 import { AddToCartButton } from "@/modules/cart/ui/add-to-cart-button";
 import { getPublishedProductCategories } from "@/modules/catalog/server/products";
+import { ProductCompareAtPrice } from "@/modules/catalog/ui/products/product-compare-at-price";
 
 function ProductsRoot({ children, ...props }: ComponentProps<"div">) {
   return (
@@ -21,7 +22,11 @@ async function ProductsList() {
   return (
     <div className="space-y-10">
       {groups.map(({ category, products }) => (
-        <section key={category.id} id={category.slug ?? undefined} className="scroll-mt-6 space-y-5">
+        <section
+          key={category.id}
+          id={category.slug ?? undefined}
+          className="scroll-mt-40 space-y-5"
+        >
           <h2 className="text-2xl font-semibold tracking-tight">{category.name}</h2>
           <ItemGroup className="grid grid-cols-2 gap-6 md:grid-cols-3">
             {products.map((product) => {
@@ -48,12 +53,11 @@ async function ProductsList() {
                     <ItemTitle className="px-2 text-center font-semibold lg:text-lg">
                       {product.name}
                     </ItemTitle>
-                    {product.description ? (
-                      <p className="line-clamp-3 px-2 text-center text-sm text-muted-foreground">
-                        {product.description}
-                      </p>
-                    ) : null}
                     <ItemActions className="w-full flex-col">
+                      <ProductCompareAtPrice
+                        compareAtPrice={product.compareAtPriceInRUB}
+                        price={product.priceInRUB}
+                      />
                       <AddToCartButton
                         productId={product.id}
                         productName={product.name}

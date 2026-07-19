@@ -5,6 +5,7 @@ export const RUB: Currency = {
   decimals: 2,
   label: "Российский рубль",
   symbol: "₽",
+  symbolDisplay: "symbol",
 };
 
 export const ecommerceCurrenciesConfig: CurrenciesConfig = {

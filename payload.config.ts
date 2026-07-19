@@ -12,6 +12,7 @@ import { ecommerceCurrenciesConfig } from "./common/ecommerce/currencies";
 import { Banners } from "./modules/catalog/payload/banners";
 import { Categories } from "./modules/catalog/payload/categories";
 import { productsCollectionOverride } from "./modules/catalog/payload/products-override";
+import { variantsCollectionOverride } from "./modules/catalog/payload/variants-override";
 import { Customers } from "./modules/customers/payload/customers";
 import { Users } from "./modules/users/payload/users";
 import {
@@ -72,6 +73,9 @@ export default buildConfig({
       },
       products: {
         productsCollectionOverride,
+        variants: {
+          variantsCollectionOverride,
+        },
       },
     }),
     vercelBlobStorage({

@@ -9,7 +9,9 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useCart } from "@payloadcms/plugin-ecommerce/client/react";
+import Image from "next/image";
 import { useMoney } from "@/common/ecommerce/use-money";
+import { getMediaImage } from "@/common/helpers/media";
 import { useIsMobile } from "@/common/hooks/use-mobile";
 import { Button } from "@/common/ui/button";
 import {
@@ -20,8 +22,9 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/common/ui/drawer";
-import { Item, ItemActions, ItemContent, ItemGroup, ItemTitle } from "@/common/ui/item";
+import { Item, ItemActions, ItemContent, ItemGroup, ItemMedia, ItemTitle } from "@/common/ui/item";
 import { Separator } from "@/common/ui/separator";
+import type { Product, Variant } from "@/payload-types";
 
 function formatProductsCount(count: number) {
   const lastDigit = count % 10;
@@ -51,6 +54,10 @@ function getProductID(product: unknown) {
   return "";
 }
 
+function getDocument<T>(value: unknown): T | null {
+  return value && typeof value === "object" ? (value as T) : null;
+}
+
 export function MiniCart({ children }: { children: ReactElement }) {
   const isMobile = useIsMobile();
   const { cart, clearCart, decrementItem, incrementItem, isLoading, removeItem } = useCart();
@@ -75,12 +82,44 @@ export function MiniCart({ children }: { children: ReactElement }) {
             <ItemGroup className="gap-4">
               {items.map((item) => {
                 const productID = getProductID(item.product);
+                const product = getDocument<Product>(item.product);
+                const variant = getDocument<Variant>(item.variant);
                 const itemID = item.id;
+                const productName = product?.name ?? `Товар #${productID}`;
+                const image = getMediaImage(product?.image, { fallbackAlt: productName });
+                const price = variant?.priceInRUB ?? product?.priceInRUB;
+                const compareAtPrice =
+                  variant?.compareAtPriceInRUB ?? product?.compareAtPriceInRUB;
+                const hasCompareAtPrice =
+                  typeof price === "number" &&
+                  typeof compareAtPrice === "number" &&
+                  compareAtPrice > price;
 
                 return (
                   <Item key={itemID} variant="outline">
+                    <ItemMedia variant="image" className="size-20 rounded-lg bg-muted">
+                      {image ? (
+                        <Image
+                          src={image.src}
+                          alt={image.alt}
+                          width={80}
+                          height={80}
+                          className="object-cover"
+                        />
+                      ) : null}
+                    </ItemMedia>
                     <ItemContent>
-                      <ItemTitle className="line-clamp-1">Товар #{productID}</ItemTitle>
+                      <ItemTitle>{productName}</ItemTitle>
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-bold">
+                          {typeof price === "number" ? formatMoney(price) : "Цена не задана"}
+                        </span>
+                        {hasCompareAtPrice ? (
+                          <span className="text-muted-foreground line-through">
+                            {formatMoney(compareAtPrice)}
+                          </span>
+                        ) : null}
+                      </div>
                     </ItemContent>
                     <ItemActions>
                       <Button
@@ -88,7 +127,7 @@ export function MiniCart({ children }: { children: ReactElement }) {
                         type="button"
                         variant="outline"
                         className="rounded-full"
-                        aria-label={`Удалить товар ${productID} из корзины`}
+                        aria-label={`Удалить ${productName} из корзины`}
                         disabled={isLoading}
                         onClick={() => void removeItem(itemID)}
                       >
@@ -101,7 +140,7 @@ export function MiniCart({ children }: { children: ReactElement }) {
                         size="icon-sm"
                         type="button"
                         variant="outline"
-                        aria-label={`Уменьшить количество товара ${productID}`}
+                        aria-label={`Уменьшить количество товара ${productName}`}
                         disabled={isLoading}
                         onClick={() => void decrementItem(itemID)}
                       >
@@ -112,7 +151,7 @@ export function MiniCart({ children }: { children: ReactElement }) {
                         size="icon-sm"
                         type="button"
                         variant="outline"
-                        aria-label={`Увеличить количество товара ${productID}`}
+                        aria-label={`Увеличить количество товара ${productName}`}
                         disabled={isLoading}
                         onClick={() => void incrementItem(itemID)}
                       >

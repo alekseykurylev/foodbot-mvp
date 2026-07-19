@@ -25,10 +25,10 @@ async function ProductsList() {
         <section
           key={category.id}
           id={category.slug ?? undefined}
-          className="scroll-mt-40 space-y-5"
+          className="scroll-mt-40 space-y-10"
         >
-          <h2 className="text-2xl font-semibold tracking-tight">{category.name}</h2>
-          <ItemGroup className="grid grid-cols-2 gap-6 md:grid-cols-3">
+          <h2 className="text-2xl font-bold tracking-tight">{category.name}</h2>
+          <ItemGroup className="grid grid-cols-2 md:grid-cols-3 gap-6">
             {products.map((product) => {
               const image = getMediaImage(product.image, { fallbackAlt: product.name });
 
@@ -50,7 +50,7 @@ async function ProductsList() {
                     )}
                   </ItemHeader>
                   <ItemContent className="items-center gap-3">
-                    <ItemTitle className="px-2 text-center font-semibold lg:text-lg">
+                    <ItemTitle className="lg:text-lg px-2 font-semibold text-center">
                       {product.name}
                     </ItemTitle>
                     <ItemActions className="w-full flex-col">
@@ -77,7 +77,7 @@ async function ProductsList() {
 
 function ProductsSkeleton() {
   return (
-    <ItemGroup className="grid grid-cols-2 gap-6 md:grid-cols-3">
+    <ItemGroup className="grid grid-cols-2 md:grid-cols-3 gap-6">
       {Array.from({ length: 6 }).map((_, index) => (
         <Item key={index}>
           <Skeleton className="aspect-square w-full" />

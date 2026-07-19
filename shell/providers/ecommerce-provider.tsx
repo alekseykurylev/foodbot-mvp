@@ -7,6 +7,25 @@ import { ecommerceCurrenciesConfig } from "@/common/ecommerce/currencies";
 export function EcommerceProvider({ children }: { children: React.ReactNode }) {
   return (
     <PayloadEcommerceProvider
+      api={{
+        cartsFetchQuery: {
+          depth: 2,
+          populate: {
+            products: {
+              compareAtPriceInRUB: true,
+              image: true,
+              name: true,
+              priceInRUB: true,
+            },
+            variants: {
+              compareAtPriceInRUB: true,
+              options: true,
+              priceInRUB: true,
+              title: true,
+            },
+          },
+        },
+      }}
       customersSlug="customers"
       currenciesConfig={ecommerceCurrenciesConfig}
       enableVariants

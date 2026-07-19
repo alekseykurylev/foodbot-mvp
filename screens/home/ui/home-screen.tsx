@@ -33,12 +33,15 @@ export function HomeScreen() {
 
       <div className="rounded-b-[48px] bg-white py-6 xl:rounded-b-[60px]">
         <Container>
-          <div>
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
             <Products.Root>
               <Suspense fallback={<Products.Skeleton />}>
                 <Products.List />
               </Suspense>
             </Products.Root>
+            <div>
+              <aside className="sticky top-44">Aside Banner</aside>
+            </div>
           </div>
         </Container>
       </div>

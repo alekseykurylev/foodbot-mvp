@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { slugField } from "payload";
+import { slugify } from "transliteration";
 
 import { adminOrPublishedStatus, isAdmin } from "@/common/cms/access";
 
@@ -30,6 +31,7 @@ export const Categories: CollectionConfig = {
       required: true,
     },
     slugField({
+      slugify: ({ valueToSlugify }) => slugify(String(valueToSlugify ?? "")),
       useAsSlug: "name",
     }),
     {

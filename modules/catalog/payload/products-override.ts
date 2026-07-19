@@ -1,5 +1,6 @@
 import type { CollectionOverride } from "@payloadcms/plugin-ecommerce/types";
 import { slugField } from "payload";
+import { slugify } from "transliteration";
 
 export const productsCollectionOverride: CollectionOverride = ({ defaultCollection }) => ({
   ...defaultCollection,
@@ -16,6 +17,7 @@ export const productsCollectionOverride: CollectionOverride = ({ defaultCollecti
       required: true,
     },
     slugField({
+      slugify: ({ valueToSlugify }) => slugify(String(valueToSlugify ?? "")),
       useAsSlug: "name",
     }),
     {

@@ -1,7 +1,7 @@
 import type { CollectionConfig } from "payload";
+import { slugField } from "payload";
 
-import { generateSlug } from "@/common/helpers/slug";
-import { isAuthenticated } from "@/common/cms/access";
+import { adminOrPublishedStatus, isAdmin } from "@/common/cms/access";
 
 export const Categories: CollectionConfig = {
   slug: "categories",
@@ -9,29 +9,19 @@ export const Categories: CollectionConfig = {
     singular: "Категория",
     plural: "Категории",
   },
+  access: {
+    create: isAdmin,
+    delete: isAdmin,
+    read: adminOrPublishedStatus,
+    update: isAdmin,
+  },
   admin: {
-    group: "Каталог",
+    defaultColumns: ["name", "sortOrder", "_status"],
+    group: "Ecommerce",
+    listSearchableFields: ["name", "slug"],
     useAsTitle: "name",
-    defaultColumns: ["name", "slug", "isActive", "sortOrder"],
   },
   defaultSort: "sortOrder",
-  hooks: {
-    beforeValidate: [
-      ({ data }) => {
-        if (data?.name && !data.slug) {
-          data.slug = generateSlug(data.name);
-        }
-
-        return data;
-      },
-    ],
-  },
-  access: {
-    read: () => true,
-    create: isAuthenticated,
-    update: isAuthenticated,
-    delete: isAuthenticated,
-  },
   fields: [
     {
       name: "name",
@@ -39,21 +29,9 @@ export const Categories: CollectionConfig = {
       label: "Название",
       required: true,
     },
-    {
-      name: "slug",
-      type: "text",
-      label: "Слаг",
-      required: true,
-      unique: true,
-      admin: {
-        description: "Заполняется автоматически из названия, но его можно отредактировать вручную.",
-      },
-    },
-    {
-      name: "description",
-      type: "textarea",
-      label: "Описание",
-    },
+    slugField({
+      useAsSlug: "name",
+    }),
     {
       name: "image",
       type: "upload",
@@ -62,19 +40,21 @@ export const Categories: CollectionConfig = {
       displayPreview: true,
     },
     {
-      name: "isActive",
-      type: "checkbox",
-      label: "Показывать в меню",
-      defaultValue: true,
-    },
-    {
       name: "sortOrder",
       type: "number",
       label: "Порядок сортировки",
       defaultValue: 100,
+      min: 0,
+      required: true,
       admin: {
-        step: 1,
+        position: "sidebar",
       },
     },
   ],
+  trash: true,
+  versions: {
+    drafts: {
+      autosave: true,
+    },
+  },
 };

@@ -1,8 +1,6 @@
 import { Suspense } from "react";
 
-import { AsideBanner } from "@/modules/catalog/ui/aside-banner";
 import { Banners, BannersSkeleton } from "@/modules/catalog/ui/banners/banners";
-import { Menu, MenuSkeleton } from "@/modules/catalog/ui/menu/menu";
 import { Products } from "@/modules/catalog/ui/products/products";
 import { MiniCart } from "@/modules/cart/ui/mini-cart";
 import { MiniCartTrigger } from "@/modules/cart/ui/mini-cart-trigger";
@@ -21,9 +19,7 @@ export function HomeScreen() {
         <div className="w-full bg-white py-6 rounded-t-[48px] xl:rounded-t-[60px]">
           <Container>
             <div className="flex justify-between gap-4 items-center">
-              <Suspense fallback={<MenuSkeleton />}>
-                <Menu />
-              </Suspense>
+              <h1 className="text-2xl font-bold">Товары</h1>
               <MiniCart>
                 <MiniCartTrigger />
               </MiniCart>
@@ -34,17 +30,12 @@ export function HomeScreen() {
 
       <div className="rounded-b-[48px] bg-white py-6 xl:rounded-b-[60px]">
         <Container>
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div>
             <Products.Root>
               <Suspense fallback={<Products.Skeleton />}>
                 <Products.List />
               </Suspense>
             </Products.Root>
-            <div>
-              <aside className="sticky top-44">
-                <AsideBanner />
-              </aside>
-            </div>
           </div>
         </Container>
       </div>

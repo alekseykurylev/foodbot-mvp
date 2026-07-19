@@ -1,47 +1,16 @@
-import { Bot, GrammyError, HttpError, InlineKeyboard, Keyboard } from "grammy";
+import { Bot, GrammyError, HttpError, InlineKeyboard } from "grammy";
 import { BOT_COMMANDS } from "@/modules/bots/commands";
 import { getBotToken } from "@/modules/bots/shared";
-import { getTelegramAiAppUrl, getTelegramCartAppUrl, getTelegramMenuAppUrl } from "@/modules/bots/urls";
+import { getTelegramCartAppUrl, getTelegramMenuAppUrl } from "@/modules/bots/urls";
 import { BOT_TEXTS } from "@/modules/bots/texts";
-import { saveBotCustomerPhone, upsertBotCustomer } from "@/modules/customers/server/customers";
 
 // ---------------------------------------------------------------------------
 // Хелперы
 // ---------------------------------------------------------------------------
 
-type TgUser = { first_name?: string; id: number | string; last_name?: string; username?: string };
-
-function getDisplayName(user: TgUser) {
-  return [user.first_name, user.last_name].filter(Boolean).join(" ");
-}
-
-async function upsertCustomer(user: TgUser) {
-  return upsertBotCustomer({
-    channel: "telegram",
-    telegramUserId: user.id,
-    telegramUsername: user.username,
-    displayName: getDisplayName(user),
-  });
-}
-
-async function saveCustomerPhone(user: TgUser, phone: string) {
-  await saveBotCustomerPhone({
-    channel: "telegram",
-    telegramUserId: user.id,
-    telegramUsername: user.username,
-    displayName: getDisplayName(user),
-    phone,
-  });
-}
-
-function getContactKeyboard() {
-  return new Keyboard().requestContact(BOT_TEXTS.phoneButton).oneTime().resized();
-}
-
 function getStartKeyboard() {
   return new InlineKeyboard([
     [InlineKeyboard.webApp(BOT_TEXTS.menuButton, getTelegramMenuAppUrl())],
-    [InlineKeyboard.webApp(BOT_TEXTS.helpButton, getTelegramAiAppUrl())],
     [InlineKeyboard.webApp(BOT_TEXTS.cartButton, getTelegramCartAppUrl())],
   ]);
 }
@@ -68,10 +37,6 @@ export function getTelegramBot() {
 
   // /start — приветствие с двумя кнопками
   instance.command("start", async (ctx) => {
-    if (ctx.from) {
-      await upsertCustomer(ctx.from);
-    }
-
     await ctx.reply(BOT_TEXTS.start, {
       reply_markup: getStartKeyboard(),
     });
@@ -79,65 +44,15 @@ export function getTelegramBot() {
 
   // /menu — открыть мини-приложение
   instance.command("menu", async (ctx) => {
-    if (ctx.from) {
-      await upsertCustomer(ctx.from);
-    }
-
     await ctx.reply(BOT_TEXTS.menu, {
       reply_markup: new InlineKeyboard().webApp(BOT_TEXTS.menuButton, getTelegramMenuAppUrl()),
     });
   });
 
-  // /ai — подобрать заказ
-  instance.command("ai", async (ctx) => {
-    if (ctx.from) {
-      await upsertCustomer(ctx.from);
-    }
-
-    await ctx.reply(BOT_TEXTS.ai, {
-      reply_markup: new InlineKeyboard().webApp(BOT_TEXTS.helpButton, getTelegramAiAppUrl()),
-    });
-  });
-
   // /cart — открыть корзину
   instance.command("cart", async (ctx) => {
-    if (ctx.from) {
-      await upsertCustomer(ctx.from);
-    }
-
     await ctx.reply(BOT_TEXTS.cart, {
       reply_markup: new InlineKeyboard().webApp(BOT_TEXTS.cartButton, getTelegramCartAppUrl()),
-    });
-  });
-
-  // /phone — поделиться телефоном
-  instance.command("phone", async (ctx) => {
-    if (ctx.from) {
-      await upsertCustomer(ctx.from);
-    }
-
-    await ctx.reply(BOT_TEXTS.phoneRequest, {
-      reply_markup: getContactKeyboard(),
-    });
-  });
-
-  // Контакт
-  instance.on("message:contact", async (ctx) => {
-    const contactUserId = ctx.message.contact.user_id;
-
-    if (!ctx.from) {
-      await ctx.reply(BOT_TEXTS.userNotIdentified);
-      return;
-    }
-
-    if (contactUserId && contactUserId !== ctx.from.id) {
-      await ctx.reply(BOT_TEXTS.wrongContact);
-      return;
-    }
-
-    await saveCustomerPhone(ctx.from, ctx.message.contact.phone_number);
-    await ctx.reply(BOT_TEXTS.phoneSaved, {
-      reply_markup: { remove_keyboard: true },
     });
   });
 
@@ -155,7 +70,6 @@ export function getTelegramBot() {
       return;
     }
 
-    await upsertCustomer(ctx.from);
     await ctx.reply(BOT_TEXTS.start, {
       reply_markup: getStartKeyboard(),
     });
@@ -168,7 +82,6 @@ export function getTelegramBot() {
       return;
     }
 
-    await upsertCustomer(ctx.from);
     await ctx.reply(BOT_TEXTS.start, {
       reply_markup: getStartKeyboard(),
     });

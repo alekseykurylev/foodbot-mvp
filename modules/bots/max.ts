@@ -1,52 +1,23 @@
 import { Bot, Keyboard as MaxKeyboard } from "@maxhub/max-bot-api";
-import type { Update, User } from "@maxhub/max-bot-api/types";
+import type { Update } from "@maxhub/max-bot-api/types";
 import { MAX_BOT_COMMANDS } from "@/modules/bots/commands";
 import { getBotToken } from "@/modules/bots/shared";
-import { getMaxAiAppUrl, getMaxCartAppUrl, getMaxMenuAppUrl } from "@/modules/bots/urls";
+import { getMaxCartAppUrl, getMaxMenuAppUrl } from "@/modules/bots/urls";
 import { BOT_TEXTS } from "@/modules/bots/texts";
-import { saveBotCustomerPhone, upsertBotCustomer } from "@/modules/customers/server/customers";
 
 // ---------------------------------------------------------------------------
 // Хелперы
 // ---------------------------------------------------------------------------
 
-async function upsertMaxCustomer(user: User) {
-  return upsertBotCustomer({
-    channel: "max",
-    maxUserId: user.user_id,
-    maxFirstName: user.name,
-    displayName: user.name,
-  });
-}
-
-async function saveMaxCustomerPhone(user: User, phone: string) {
-  await saveBotCustomerPhone({
-    channel: "max",
-    maxUserId: user.user_id,
-    maxFirstName: user.name,
-    displayName: user.name,
-    phone,
-  });
-}
-
-function getContactKeyboard() {
-  return MaxKeyboard.inlineKeyboard([[MaxKeyboard.button.requestContact(BOT_TEXTS.phoneButton)]]);
-}
-
 function getStartKeyboard() {
   return MaxKeyboard.inlineKeyboard([
     [MaxKeyboard.button.link(BOT_TEXTS.menuButton, getMaxMenuAppUrl())],
-    [MaxKeyboard.button.link(BOT_TEXTS.helpButton, getMaxAiAppUrl())],
     [MaxKeyboard.button.link(BOT_TEXTS.cartButton, getMaxCartAppUrl())],
   ]);
 }
 
 function getMenuKeyboard() {
   return MaxKeyboard.inlineKeyboard([[MaxKeyboard.button.link(BOT_TEXTS.menuButton, getMaxMenuAppUrl())]]);
-}
-
-function getAiKeyboard() {
-  return MaxKeyboard.inlineKeyboard([[MaxKeyboard.button.link(BOT_TEXTS.helpButton, getMaxAiAppUrl())]]);
 }
 
 function getCartKeyboard() {
@@ -69,10 +40,6 @@ export function getMaxBot() {
 
   // Первый запуск бота пользователем
   bot.on("bot_started", async (ctx) => {
-    if (ctx.user) {
-      await upsertMaxCustomer(ctx.user);
-    }
-
     await ctx.reply(BOT_TEXTS.start, {
       attachments: [getStartKeyboard()],
     });
@@ -80,12 +47,6 @@ export function getMaxBot() {
 
   // /start
   bot.command("start", async (ctx) => {
-    const sender = ctx.message.sender;
-
-    if (sender) {
-      await upsertMaxCustomer(sender);
-    }
-
     await ctx.reply(BOT_TEXTS.start, {
       attachments: [getStartKeyboard()],
     });
@@ -93,53 +54,15 @@ export function getMaxBot() {
 
   // /menu
   bot.command("menu", async (ctx) => {
-    const sender = ctx.message.sender;
-
-    if (sender) {
-      await upsertMaxCustomer(sender);
-    }
-
     await ctx.reply(BOT_TEXTS.menu, {
       attachments: [getMenuKeyboard()],
     });
   });
 
-  // /ai
-  bot.command("ai", async (ctx) => {
-    const sender = ctx.message.sender;
-
-    if (sender) {
-      await upsertMaxCustomer(sender);
-    }
-
-    await ctx.reply(BOT_TEXTS.ai, {
-      attachments: [getAiKeyboard()],
-    });
-  });
-
   // /cart
   bot.command("cart", async (ctx) => {
-    const sender = ctx.message.sender;
-
-    if (sender) {
-      await upsertMaxCustomer(sender);
-    }
-
     await ctx.reply(BOT_TEXTS.cart, {
       attachments: [getCartKeyboard()],
-    });
-  });
-
-  // /phone
-  bot.command("phone", async (ctx) => {
-    const sender = ctx.message.sender;
-
-    if (sender) {
-      await upsertMaxCustomer(sender);
-    }
-
-    await ctx.reply(BOT_TEXTS.phoneRequest, {
-      attachments: [getContactKeyboard()],
     });
   });
 
@@ -147,20 +70,6 @@ export function getMaxBot() {
   bot.on("message_created", async (ctx) => {
     const text = ctx.message.body.text?.trim();
     const sender = ctx.message.sender;
-    const phone = ctx.contactInfo?.tel;
-
-    // Контакт
-    if (phone) {
-      if (!sender) {
-        await ctx.reply(BOT_TEXTS.userNotIdentified);
-        return;
-      }
-
-      await saveMaxCustomerPhone(sender, phone);
-      await ctx.reply(BOT_TEXTS.phoneSaved);
-      return;
-    }
-
     // Текст
     if (!text) {
       await ctx.reply(BOT_TEXTS.start, {
@@ -179,7 +88,6 @@ export function getMaxBot() {
       return;
     }
 
-    await upsertMaxCustomer(sender);
     await ctx.reply(BOT_TEXTS.start, {
       attachments: [getStartKeyboard()],
     });

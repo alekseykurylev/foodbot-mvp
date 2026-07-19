@@ -1,18 +1,27 @@
 import sharp from "sharp";
 import { postgresAdapter } from "@payloadcms/db-postgres";
+import { ecommercePlugin } from "@payloadcms/plugin-ecommerce";
+import { ruTranslations as ecommerceRu } from "@payloadcms/plugin-ecommerce/translations/languages/ru";
 import { ru } from "@payloadcms/translations/languages/ru";
 import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 import { buildConfig } from "payload";
 import path from "path";
 import { fileURLToPath } from "url";
 import { Media } from "./common/cms/payload/media";
-import { AiProposals } from "./modules/ai/payload/ai-proposals";
+import { ecommerceCurrenciesConfig } from "./common/ecommerce/currencies";
 import { Banners } from "./modules/catalog/payload/banners";
 import { Categories } from "./modules/catalog/payload/categories";
-import { Products } from "./modules/catalog/payload/products";
+import { productsCollectionOverride } from "./modules/catalog/payload/products-override";
 import { Customers } from "./modules/customers/payload/customers";
-import { Orders } from "./modules/orders/payload/orders";
 import { Users } from "./modules/users/payload/users";
+import {
+  adminOnlyFieldAccess,
+  adminOrPublishedStatus,
+  isAdmin,
+  isAuthenticated,
+  isCustomer,
+  isDocumentOwner,
+} from "./common/cms/access";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -42,8 +51,29 @@ export default buildConfig({
       defaultTimezone: "Europe/Moscow",
     },
   },
-  collections: [Users, Media, Categories, Products, Banners, Customers, Orders, AiProposals],
+  collections: [Users, Customers, Media, Banners, Categories],
   plugins: [
+    ecommercePlugin({
+      access: {
+        adminOnlyFieldAccess,
+        adminOrPublishedStatus,
+        isAdmin,
+        isAuthenticated,
+        isCustomer,
+        isDocumentOwner,
+      },
+      customers: {
+        slug: Customers.slug,
+      },
+      currencies: ecommerceCurrenciesConfig,
+      inventory: false,
+      payments: {
+        paymentMethods: [],
+      },
+      products: {
+        productsCollectionOverride,
+      },
+    }),
     vercelBlobStorage({
       collections: {
         media: true,
@@ -64,6 +94,7 @@ export default buildConfig({
     supportedLanguages: { ru },
     translations: {
       ru: {
+        ...ecommerceRu,
         general: {
           true: "да",
           false: "нет",

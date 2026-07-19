@@ -1,62 +1,34 @@
 "use server";
 
 import { getPayloadLocal } from "@/common/cms/payload-local";
-import { getActiveCategories } from "@/modules/catalog/server/categories";
-import { getRelationshipID } from "@/common/helpers/relationship";
-import type { Category, Product } from "@/payload-types";
 
-export type ProductCategory = {
-  category: Category;
-  products: Product[];
-};
-
-export async function getActiveProductCategories(): Promise<ProductCategory[]> {
+export async function getPublishedProductCategories() {
   const payload = await getPayloadLocal();
-  const [categories, { docs: products }] = await Promise.all([
-    getActiveCategories(),
+  const [categories, products] = await Promise.all([
+    payload.find({
+      collection: "categories",
+      depth: 1,
+      limit: 100,
+      overrideAccess: false,
+      sort: "sortOrder",
+    }),
     payload.find({
       collection: "products",
-      where: {
-        status: {
-          equals: "active",
-        },
-      },
-      sort: "sortOrder",
-      limit: 100,
       depth: 1,
+      limit: 100,
+      overrideAccess: false,
+      sort: "name",
     }),
   ]);
 
-  const productsByCategory = new Map<Category["id"], Product[]>();
+  return categories.docs.flatMap((category) => {
+    const categoryProducts = products.docs.filter((product) => {
+      const productCategoryId =
+        typeof product.category === "object" ? product.category.id : product.category;
 
-  for (const product of products) {
-    const categoryId = getRelationshipID(product.category);
+      return productCategoryId === category.id;
+    });
 
-    if (typeof categoryId !== "number") {
-      continue;
-    }
-
-    const categoryProducts = productsByCategory.get(categoryId);
-
-    if (categoryProducts) {
-      categoryProducts.push(product);
-    } else {
-      productsByCategory.set(categoryId, [product]);
-    }
-  }
-
-  return categories.flatMap((category) => {
-    const categoryProducts = productsByCategory.get(category.id);
-
-    if (!categoryProducts?.length) {
-      return [];
-    }
-
-    return [
-      {
-        category,
-        products: categoryProducts,
-      },
-    ];
+    return categoryProducts.length > 0 ? [{ category, products: categoryProducts }] : [];
   });
 }

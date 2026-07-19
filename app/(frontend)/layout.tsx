@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/shell/providers/theme-provider";
 import { cn } from "@/common/utils/cn";
 import { Header } from "@/shell/layout/header/header";
 import { Footer } from "@/shell/layout/footer/footer";
+import { EcommerceProvider } from "@/shell/providers/ecommerce-provider";
 
 const inter = Inter({ subsets: ["cyrillic"], variable: "--font-sans" });
 
@@ -26,11 +27,13 @@ export default function RootLayout({
     >
       <body className="relative bg-sidebar-accent">
         <ThemeProvider>
-          <div className="isolate flex min-h-svh flex-col">
-            <Header />
-            <main className="flex min-h-0 flex-1 flex-col">{children}</main>
-            <Footer />
-          </div>
+          <EcommerceProvider>
+            <div className="isolate flex min-h-svh flex-col">
+              <Header />
+              <main className="flex min-h-0 flex-1 flex-col">{children}</main>
+              <Footer />
+            </div>
+          </EcommerceProvider>
         </ThemeProvider>
       </body>
     </html>

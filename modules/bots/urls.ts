@@ -23,10 +23,6 @@ export function getTelegramMiniAppUrl(path = ""): string {
   return `${getAppUrl()}${path}`;
 }
 
-export function getTelegramAiAppUrl(): string {
-  return getTelegramMiniAppUrl("/?start=ai");
-}
-
 export function getTelegramCartAppUrl(): string {
   return getTelegramMiniAppUrl("/?start=cart");
 }
@@ -39,10 +35,6 @@ export function getTelegramMenuAppUrl(): string {
 export function getMaxMiniAppUrl(payload?: string): string {
   const base = `https://max.ru/${getMaxBotName()}?startapp`;
   return payload ? `${base}=${payload}` : base;
-}
-
-export function getMaxAiAppUrl(): string {
-  return getMaxMiniAppUrl("ai");
 }
 
 export function getMaxCartAppUrl(): string {

@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { Banners, BannersSkeleton } from "@/modules/catalog/ui/banners/banners";
+import { Menu, MenuSkeleton } from "@/modules/catalog/ui/menu/menu";
 import { Products } from "@/modules/catalog/ui/products/products";
 import { MiniCart } from "@/modules/cart/ui/mini-cart";
 import { MiniCartTrigger } from "@/modules/cart/ui/mini-cart-trigger";
@@ -19,7 +20,9 @@ export function HomeScreen() {
         <div className="w-full bg-white py-6 rounded-t-[48px] xl:rounded-t-[60px]">
           <Container>
             <div className="flex justify-between gap-4 items-center">
-              <h1 className="text-2xl font-bold">Товары</h1>
+              <Suspense fallback={<MenuSkeleton />}>
+                <Menu />
+              </Suspense>
               <MiniCart>
                 <MiniCartTrigger />
               </MiniCart>

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-
+import Image from "next/image";
 import { Banners, BannersSkeleton } from "@/modules/catalog/ui/banners/banners";
 import { Menu, MenuSkeleton } from "@/modules/catalog/ui/menu/menu";
 import { Products } from "@/modules/catalog/ui/products/products";
@@ -40,7 +40,23 @@ export function HomeScreen() {
               </Suspense>
             </Products.Root>
             <div>
-              <aside className="sticky top-44">Banner</aside>
+              <aside className="sticky top-44">
+                <a
+                  href="#"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block overflow-hidden rounded-4xl"
+                >
+                  <Image
+                    src="/019ea6dc.webp"
+                    alt="AsideBanner"
+                    width={900}
+                    height={1165}
+                    loading="eager"
+                    className="h-auto w-full"
+                  />
+                </a>
+              </aside>
             </div>
           </div>
         </Container>

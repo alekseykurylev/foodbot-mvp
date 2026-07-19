@@ -3,7 +3,7 @@
 import type { ReactElement } from "react";
 import { useCart } from "@payloadcms/plugin-ecommerce/client/react";
 import Image from "next/image";
-import { Minus, Plus, XIcon } from "lucide-react";
+import { XIcon } from "lucide-react";
 import { useMoney } from "@/common/ecommerce/use-money";
 import { getMediaImage } from "@/common/helpers/media";
 import { useIsMobile } from "@/common/hooks/use-mobile";
@@ -17,6 +17,7 @@ import {
   DrawerTrigger,
 } from "@/common/ui/drawer";
 import { Item, ItemActions, ItemContent, ItemGroup, ItemMedia, ItemTitle } from "@/common/ui/item";
+import { NumberField } from "@/common/ui/number-field";
 import { Separator } from "@/common/ui/separator";
 import type { Product, Variant } from "@/payload-types";
 
@@ -129,29 +130,24 @@ export function MiniCart({ children }: { children: ReactElement }) {
                           </span>
                         ) : null}
                       </div>
-                      <div>
-                        <Button
-                          size="icon-sm"
-                          type="button"
-                          variant="outline"
-                          aria-label={`Уменьшить количество товара ${productName}`}
-                          disabled={isLoading}
-                          onClick={() => void decrementItem(itemID)}
-                        >
-                          <Minus />
-                        </Button>
-                        <span className="min-w-8 text-center font-bold">{item.quantity}</span>
-                        <Button
-                          size="icon-sm"
-                          type="button"
-                          variant="outline"
-                          aria-label={`Увеличить количество товара ${productName}`}
-                          disabled={isLoading}
-                          onClick={() => void incrementItem(itemID)}
-                        >
-                          <Plus />
-                        </Button>
-                      </div>
+                      <NumberField
+                        aria-label={`Количество товара ${productName}`}
+                        disabled={isLoading}
+                        inputProps={{ readOnly: true }}
+                        min={1}
+                        value={item.quantity}
+                        onValueChange={(value) => {
+                          if (value === null || value === item.quantity) {
+                            return;
+                          }
+
+                          if (value > item.quantity) {
+                            void incrementItem(itemID);
+                          } else {
+                            void decrementItem(itemID);
+                          }
+                        }}
+                      />
                     </div>
                   </Item>
                 );

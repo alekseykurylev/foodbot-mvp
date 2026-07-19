@@ -32,7 +32,6 @@ export function AddToCartButton({ productId, productName, price }: AddToCartButt
 
   return (
     <Button
-      size="lg"
       type="button"
       variant="secondary"
       className="relative has-data-[icon=inline-start]:pl-5 lg:h-11 lg:px-5 lg:py-3 lg:text-lg"

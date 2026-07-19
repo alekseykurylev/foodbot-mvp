@@ -82,7 +82,7 @@ function ProductsSkeleton() {
         <Item key={index} className="flex flex-col justify-center">
           <Skeleton className="aspect-square rounded-full w-full" />
           <Skeleton className="h-5 w-2/3" />
-          <Skeleton className="h-11 w-1/4" />
+          <Skeleton className="h-11 w-1/3" />
         </Item>
       ))}
     </ItemGroup>

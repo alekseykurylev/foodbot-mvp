@@ -103,16 +103,6 @@ export function MiniCart({ children }: { children: ReactElement }) {
                     </ItemMedia>
                     <ItemContent>
                       <ItemTitle>{productName}</ItemTitle>
-                      <div className="flex items-baseline gap-2">
-                        <span className="font-bold">
-                          {typeof price === "number" ? formatMoney(price) : "Цена не задана"}
-                        </span>
-                        {hasCompareAtPrice ? (
-                          <span className="text-muted-foreground line-through">
-                            {formatMoney(compareAtPrice)}
-                          </span>
-                        ) : null}
-                      </div>
                     </ItemContent>
                     <ItemActions>
                       <Button
@@ -128,28 +118,40 @@ export function MiniCart({ children }: { children: ReactElement }) {
                       </Button>
                     </ItemActions>
                     <Separator className="basis-full" />
-                    <div className="flex basis-full items-center justify-end gap-3">
-                      <Button
-                        size="icon-sm"
-                        type="button"
-                        variant="outline"
-                        aria-label={`Уменьшить количество товара ${productName}`}
-                        disabled={isLoading}
-                        onClick={() => void decrementItem(itemID)}
-                      >
-                        <Minus />
-                      </Button>
-                      <span className="min-w-8 text-center font-bold">{item.quantity}</span>
-                      <Button
-                        size="icon-sm"
-                        type="button"
-                        variant="outline"
-                        aria-label={`Увеличить количество товара ${productName}`}
-                        disabled={isLoading}
-                        onClick={() => void incrementItem(itemID)}
-                      >
-                        <Plus />
-                      </Button>
+                    <div className="flex basis-full items-center justify-between gap-3">
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-bold">
+                          {typeof price === "number" ? formatMoney(price) : "Цена не задана"}
+                        </span>
+                        {hasCompareAtPrice ? (
+                          <span className="text-muted-foreground line-through">
+                            {formatMoney(compareAtPrice)}
+                          </span>
+                        ) : null}
+                      </div>
+                      <div>
+                        <Button
+                          size="icon-sm"
+                          type="button"
+                          variant="outline"
+                          aria-label={`Уменьшить количество товара ${productName}`}
+                          disabled={isLoading}
+                          onClick={() => void decrementItem(itemID)}
+                        >
+                          <Minus />
+                        </Button>
+                        <span className="min-w-8 text-center font-bold">{item.quantity}</span>
+                        <Button
+                          size="icon-sm"
+                          type="button"
+                          variant="outline"
+                          aria-label={`Увеличить количество товара ${productName}`}
+                          disabled={isLoading}
+                          onClick={() => void incrementItem(itemID)}
+                        >
+                          <Plus />
+                        </Button>
+                      </div>
                     </div>
                   </Item>
                 );

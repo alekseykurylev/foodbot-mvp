@@ -15,7 +15,7 @@ export function MiniCartTrigger({ className, ...props }: ComponentProps<typeof B
 
   return (
     <Button
-      size="lg"
+      size="xl"
       className={cn("max-md:fixed max-md:right-4 max-md:bottom-4", className)}
       {...props}
     >

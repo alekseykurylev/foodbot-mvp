@@ -38,6 +38,7 @@ export function MenuList({ items }: { items: MenuItem[] }) {
       {items.map((item) => (
         <NavigationMenuItem key={item.id}>
           <NavigationMenuLink
+            className="h-10 gap-2 px-5 py-0 text-base"
             ref={(element) => {
               registerItem(item.slug, element);
             }}

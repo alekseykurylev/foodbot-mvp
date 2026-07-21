@@ -55,7 +55,7 @@ export function ProductDialog({
     Array<{
       id: string;
       label: string;
-      options: Array<{ id: string; label: string; order: number }>;
+      options: Array<{ id: string; image?: ProductCardImage; label: string; order: number }>;
       order: number;
     }>
   >((types, variant) => {
@@ -75,7 +75,12 @@ export function ProductDialog({
 
       const optionId = String(option.id);
       if (!type.options.some(({ id }) => id === optionId)) {
-        type.options.push({ id: optionId, label: option.label, order: option.optionOrder });
+        type.options.push({
+          id: optionId,
+          image: option.image,
+          label: option.label,
+          order: option.optionOrder,
+        });
       }
     }
 
@@ -101,6 +106,10 @@ export function ProductDialog({
   );
   const hasVariants = variants.length > 0;
   const selectedPrice = selectedVariant?.price ?? price;
+  const selectedOptionImage = variantTypes
+    .map((type) => type.options.find((option) => option.id === selectedOptionIds[type.id]))
+    .find((option) => option?.image)?.image;
+  const selectedImage = selectedOptionImage ?? image;
 
   async function handleAddToCart() {
     if (hasVariants && !selectedVariant) return;
@@ -114,11 +123,11 @@ export function ProductDialog({
 
   return (
     <DialogContent className="sm:max-w-2xl sm:grid-cols-2">
-      {image ? (
+      {selectedImage ? (
         <div className="relative aspect-square w-full overflow-hidden rounded-lg">
           <Image
-            src={image.src}
-            alt={image.alt}
+            src={selectedImage.src}
+            alt={selectedImage.alt}
             fill
             sizes="(max-width: 640px) calc(100vw - 4rem), 320px"
             className="object-cover"

@@ -12,6 +12,7 @@ import { ecommerceCurrenciesConfig } from "./common/ecommerce/currencies";
 import { Banners } from "./modules/catalog/payload/banners";
 import { Categories } from "./modules/catalog/payload/categories";
 import { productsCollectionOverride } from "./modules/catalog/payload/products-override";
+import { variantOptionsCollectionOverride } from "./modules/catalog/payload/variant-options-override";
 import { variantsCollectionOverride } from "./modules/catalog/payload/variants-override";
 import { Customers } from "./modules/customers/payload/customers";
 import { Users } from "./modules/users/payload/users";
@@ -74,6 +75,7 @@ export default buildConfig({
       products: {
         productsCollectionOverride,
         variants: {
+          variantOptionsCollectionOverride,
           variantsCollectionOverride,
         },
       },

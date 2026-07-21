@@ -9,7 +9,7 @@ export function EcommerceProvider({ children }: { children: React.ReactNode }) {
     <PayloadEcommerceProvider
       api={{
         cartsFetchQuery: {
-          depth: 2,
+          depth: 3,
           populate: {
             products: {
               compareAtPriceInRUB: true,

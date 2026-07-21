@@ -466,6 +466,7 @@ export interface VariantOption {
    * should be defaulted or dynamic based on label
    */
   value: string;
+  image?: (number | null) | Media;
   updatedAt: string;
   createdAt: string;
   deletedAt?: string | null;
@@ -876,6 +877,7 @@ export interface VariantOptionsSelect<T extends boolean = true> {
   variantType?: T;
   label?: T;
   value?: T;
+  image?: T;
   updatedAt?: T;
   createdAt?: T;
   deletedAt?: T;

@@ -65,6 +65,8 @@ async function ProductsList() {
                   return [
                     {
                       id: option.id,
+                      image:
+                        getMediaImage(option.image, { fallbackAlt: product.name }) ?? undefined,
                       label: option.label,
                       optionOrder:
                         typeDetails.optionOrders.get(String(option.id)) ?? Number.MAX_SAFE_INTEGER,

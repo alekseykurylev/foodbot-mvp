@@ -14,6 +14,7 @@ export type ProductCardVariant = {
 
 export type ProductCardVariantOption = {
   id: DefaultDocumentIDType;
+  image?: ProductCardImage;
   label: string;
   optionOrder: number;
   typeId: DefaultDocumentIDType;

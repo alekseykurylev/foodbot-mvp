@@ -16,7 +16,15 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/common/ui/drawer";
-import { Item, ItemActions, ItemContent, ItemGroup, ItemMedia, ItemTitle } from "@/common/ui/item";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemMedia,
+  ItemTitle,
+} from "@/common/ui/item";
 import { NumberField } from "@/common/ui/number-field";
 import { Separator } from "@/common/ui/separator";
 import type { Product, Variant } from "@/payload-types";
@@ -81,9 +89,19 @@ export function MiniCart({ children }: { children: ReactElement }) {
                 const variant = getDocument<Variant>(item.variant);
                 const itemID = item.id;
                 const productName = product?.name ?? `Товар #${productID}`;
-                const image = getMediaImage(product?.image, { fallbackAlt: productName });
+                const variantOptionImage = (variant?.options ?? []).find(
+                  (option) => typeof option === "object" && option.image,
+                );
+                const image =
+                  getMediaImage(
+                    typeof variantOptionImage === "object" ? variantOptionImage.image : undefined,
+                    { fallbackAlt: productName },
+                  ) ?? getMediaImage(product?.image, { fallbackAlt: productName });
                 const price = variant?.priceInRUB ?? product?.priceInRUB;
                 const compareAtPrice = variant?.compareAtPriceInRUB ?? product?.compareAtPriceInRUB;
+                const variantOptions = (variant?.options ?? [])
+                  .flatMap((option) => (typeof option === "object" ? [option.label] : []))
+                  .join(", ");
                 const hasCompareAtPrice =
                   typeof price === "number" &&
                   typeof compareAtPrice === "number" &&
@@ -104,6 +122,7 @@ export function MiniCart({ children }: { children: ReactElement }) {
                     </ItemMedia>
                     <ItemContent>
                       <ItemTitle>{productName}</ItemTitle>
+                      {variantOptions ? <ItemDescription>{variantOptions}</ItemDescription> : null}
                     </ItemContent>
                     <ItemActions>
                       <Button

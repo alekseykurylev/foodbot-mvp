@@ -16,7 +16,7 @@ export const getPublishedProductCategories = cache(async () => {
     }),
     payload.find({
       collection: "products",
-      depth: 1,
+      depth: 2,
       limit: 100,
       overrideAccess: false,
       sort: "name",

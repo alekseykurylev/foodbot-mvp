@@ -7,12 +7,20 @@ import { useMoney } from "@/common/ecommerce/use-money";
 import { Button } from "@/common/ui/button";
 
 type AddToCartButtonProps = {
+  onVariantSelectionRequired?: () => void;
   productId: DefaultDocumentIDType;
   productName: string;
   price?: null | number;
+  variantSelectionRequired?: boolean;
 };
 
-export function AddToCartButton({ productId, productName, price }: AddToCartButtonProps) {
+export function AddToCartButton({
+  onVariantSelectionRequired,
+  productId,
+  productName,
+  price,
+  variantSelectionRequired = false,
+}: AddToCartButtonProps) {
   const { addItem, isLoading } = useCart();
   const { formatMoney } = useMoney();
 
@@ -23,11 +31,25 @@ export function AddToCartButton({ productId, productName, price }: AddToCartButt
       type="button"
       variant="secondary"
       className="disabled:opacity-100 lg:h-11 lg:px-5 lg:py-3 lg:text-lg"
-      aria-label={`Добавить ${productName} в корзину`}
+      aria-label={
+        variantSelectionRequired
+          ? `Выбрать вариацию товара ${productName}`
+          : `Добавить ${productName} в корзину`
+      }
       disabled={isLoading}
-      onClick={() => void addItem({ product: productId })}
+      onClick={() => {
+        if (variantSelectionRequired) {
+          onVariantSelectionRequired?.();
+          return;
+        }
+
+        void addItem({ product: productId });
+      }}
     >
-      <span className="font-medium">{formatMoney(price)}</span>
+      <span className="font-medium">
+        {variantSelectionRequired ? "от " : null}
+        {formatMoney(price)}
+      </span>
     </Button>
   );
 }

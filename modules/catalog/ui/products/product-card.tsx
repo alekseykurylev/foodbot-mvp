@@ -2,34 +2,26 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { useCart } from "@payloadcms/plugin-ecommerce/client/react";
 import type { DefaultDocumentIDType } from "payload";
 
-import { useMoney } from "@/common/ecommerce/use-money";
-import { Button } from "@/common/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/common/ui/dialog";
+import { Dialog } from "@/common/ui/dialog";
 import { Item, ItemActions, ItemContent, ItemHeader, ItemTitle } from "@/common/ui/item";
-import { Spinner } from "@/common/ui/spinner";
 import { AddToCartButton } from "@/modules/cart/ui/add-to-cart-button";
+import type {
+  ProductCardImage,
+  ProductCardVariant,
+} from "@/modules/catalog/ui/products/product-card-types";
+import { ProductDialog } from "@/modules/catalog/ui/products/product-dialog";
 import { ProductCompareAtPrice } from "@/modules/catalog/ui/products/product-compare-at-price";
 
 type ProductCardProps = {
   description?: null | string;
-  image?: {
-    alt: string;
-    src: string;
-  };
+  image?: ProductCardImage;
   productId: DefaultDocumentIDType;
   productName: string;
   price?: null | number;
   compareAtPrice?: null | number;
+  variants: ProductCardVariant[];
 };
 
 export function ProductCard({
@@ -39,15 +31,10 @@ export function ProductCard({
   price,
   productId,
   productName,
+  variants,
 }: ProductCardProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { addItem, isLoading } = useCart();
-  const { formatMoney } = useMoney();
-
-  async function handleAddToCart() {
-    await addItem({ product: productId });
-    setIsOpen(false);
-  }
+  const hasVariants = variants.length > 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -80,53 +67,26 @@ export function ProductCard({
           </ItemTitle>
           <ItemActions className="w-full flex-col">
             <ProductCompareAtPrice compareAtPrice={compareAtPrice} price={price} />
-            <AddToCartButton productId={productId} productName={productName} price={price} />
+            <AddToCartButton
+              productId={productId}
+              productName={productName}
+              price={price}
+              variantSelectionRequired={hasVariants}
+              onVariantSelectionRequired={() => setIsOpen(true)}
+            />
           </ItemActions>
         </ItemContent>
       </Item>
 
-      <DialogContent className="sm:max-w-2xl sm:grid-cols-2">
-        {image ? (
-          <div className="relative aspect-square w-full overflow-hidden rounded-lg">
-            <Image
-              src={image.src}
-              alt={image.alt}
-              fill
-              sizes="(max-width: 640px) calc(100vw - 4rem), 320px"
-              className="object-cover"
-            />
-          </div>
-        ) : (
-          <div className="aspect-square w-full rounded-lg bg-muted" />
-        )}
-        <div className="flex min-w-0 flex-col gap-6">
-          <DialogHeader>
-            <DialogTitle className="text-xl">{productName}</DialogTitle>
-            <DialogDescription className="whitespace-pre-line">
-              {description || "Описание товара скоро появится."}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="mt-auto">
-            {price ? (
-              <Button
-                className="relative w-full"
-                type="button"
-                size="xl"
-                disabled={isLoading}
-                onClick={() => void handleAddToCart()}
-              >
-                {isLoading ? (
-                  <Spinner
-                    className="absolute top-1/2 left-4 -translate-y-1/2"
-                    aria-label="Добавление товара в корзину"
-                  />
-                ) : null}
-                В корзину за {formatMoney(price)}
-              </Button>
-            ) : null}
-          </DialogFooter>
-        </div>
-      </DialogContent>
+      <ProductDialog
+        description={description}
+        image={image}
+        onAdded={() => setIsOpen(false)}
+        price={price}
+        productId={productId}
+        productName={productName}
+        variants={variants}
+      />
     </Dialog>
   );
 }

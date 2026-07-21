@@ -78,15 +78,17 @@ export function ProductCard({
         </ItemContent>
       </Item>
 
-      <ProductDialog
-        description={description}
-        image={image}
-        onAdded={() => setIsOpen(false)}
-        price={price}
-        productId={productId}
-        productName={productName}
-        variants={variants}
-      />
+      {isOpen ? (
+        <ProductDialog
+          description={description}
+          image={image}
+          onAdded={() => setIsOpen(false)}
+          price={price}
+          productId={productId}
+          productName={productName}
+          variants={variants}
+        />
+      ) : null}
     </Dialog>
   );
 }

@@ -28,13 +28,27 @@ async function ProductsList() {
           <ItemGroup className="grid grid-cols-2 md:grid-cols-3 gap-6">
             {products.map((product) => {
               const image = getMediaImage(product.image, { fallbackAlt: product.name });
-              const variantTypeLabels = new Map(
-                (product.variantTypes ?? []).flatMap((variantType) =>
-                  typeof variantType === "object"
-                    ? [[String(variantType.id), variantType.label] as const]
-                    : [],
-                ),
-              );
+              const variantTypeDetails = new Map<
+                string,
+                { label: string; optionOrders: Map<string, number>; typeOrder: number }
+              >();
+
+              for (const [typeOrder, variantType] of (product.variantTypes ?? []).entries()) {
+                if (typeof variantType !== "object") continue;
+
+                const optionOrders = new Map(
+                  (variantType.options?.docs ?? []).flatMap((option, optionOrder) =>
+                    typeof option === "object" ? [[String(option.id), optionOrder] as const] : [],
+                  ),
+                );
+
+                variantTypeDetails.set(String(variantType.id), {
+                  label: variantType.label,
+                  optionOrders,
+                  typeOrder,
+                });
+              }
+
               const variants = (product.variants?.docs ?? []).flatMap((variant) => {
                 if (typeof variant !== "object") return [];
 
@@ -43,10 +57,8 @@ async function ProductsList() {
 
                   const variantType = option.variantType;
                   const typeId = typeof variantType === "object" ? variantType.id : variantType;
-                  const typeLabel =
-                    typeof variantType === "object"
-                      ? variantType.label
-                      : variantTypeLabels.get(String(variantType));
+                  const typeDetails = variantTypeDetails.get(String(typeId));
+                  const typeLabel = typeDetails?.label;
 
                   if (!typeLabel) return [];
 
@@ -54,8 +66,11 @@ async function ProductsList() {
                     {
                       id: option.id,
                       label: option.label,
+                      optionOrder:
+                        typeDetails.optionOrders.get(String(option.id)) ?? Number.MAX_SAFE_INTEGER,
                       typeId,
                       typeLabel,
+                      typeOrder: typeDetails.typeOrder,
                     },
                   ];
                 });

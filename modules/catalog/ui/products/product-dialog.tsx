@@ -49,14 +49,14 @@ export function ProductDialog({
   variants,
 }: ProductDialogProps) {
   const selectIdPrefix = useId();
-  const [selectedOptionIds, setSelectedOptionIds] = useState<Record<string, string>>({});
   const { addItem, isLoading } = useCart();
   const { formatMoney } = useMoney();
   const variantTypes = variants.reduce<
     Array<{
       id: string;
       label: string;
-      options: Array<{ id: string; label: string }>;
+      options: Array<{ id: string; label: string; order: number }>;
+      order: number;
     }>
   >((types, variant) => {
     for (const option of variant.options) {
@@ -64,18 +64,33 @@ export function ProductDialog({
       let type = types.find(({ id }) => id === typeId);
 
       if (!type) {
-        type = { id: typeId, label: option.typeLabel, options: [] };
+        type = {
+          id: typeId,
+          label: option.typeLabel,
+          options: [],
+          order: option.typeOrder,
+        };
         types.push(type);
       }
 
       const optionId = String(option.id);
       if (!type.options.some(({ id }) => id === optionId)) {
-        type.options.push({ id: optionId, label: option.label });
+        type.options.push({ id: optionId, label: option.label, order: option.optionOrder });
       }
     }
 
     return types;
   }, []);
+  variantTypes.sort((a, b) => a.order - b.order);
+  for (const type of variantTypes) {
+    type.options.sort((a, b) => a.order - b.order);
+  }
+
+  const [selectedOptionIds, setSelectedOptionIds] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      variantTypes.flatMap((type) => (type.options[0] ? [[type.id, type.options[0].id]] : [])),
+    ),
+  );
   const allOptionsSelected = variantTypes.every(({ id }) => Boolean(selectedOptionIds[id]));
   const selectedVariant = variants.find(
     (variant) =>

@@ -1,12 +1,9 @@
 import type { ComponentProps } from "react";
-import Image from "next/image";
-
 import { getMediaImage } from "@/common/helpers/media";
-import { Item, ItemActions, ItemContent, ItemGroup, ItemHeader, ItemTitle } from "@/common/ui/item";
+import { Item, ItemGroup } from "@/common/ui/item";
 import { Skeleton } from "@/common/ui/skeleton";
-import { AddToCartButton } from "@/modules/cart/ui/add-to-cart-button";
 import { getPublishedProductCategories } from "@/modules/catalog/server/products";
-import { ProductCompareAtPrice } from "@/modules/catalog/ui/products/product-compare-at-price";
+import { ProductCard } from "@/modules/catalog/ui/products/product-card";
 
 function ProductsRoot({ children, ...props }: ComponentProps<"div">) {
   return (
@@ -33,39 +30,15 @@ async function ProductsList() {
               const image = getMediaImage(product.image, { fallbackAlt: product.name });
 
               return (
-                <Item key={product.id} className="p-0">
-                  <ItemHeader>
-                    {image ? (
-                      <div className="relative aspect-square w-full overflow-hidden rounded-lg">
-                        <Image
-                          src={image.src}
-                          alt={image.alt}
-                          fill
-                          sizes="(max-width: 768px) 50vw, 33vw"
-                          className="object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="aspect-square w-full rounded-lg bg-muted" />
-                    )}
-                  </ItemHeader>
-                  <ItemContent className="items-center gap-3">
-                    <ItemTitle className="lg:text-lg px-2 font-semibold text-center">
-                      {product.name}
-                    </ItemTitle>
-                    <ItemActions className="w-full flex-col">
-                      <ProductCompareAtPrice
-                        compareAtPrice={product.compareAtPriceInRUB}
-                        price={product.priceInRUB}
-                      />
-                      <AddToCartButton
-                        productId={product.id}
-                        productName={product.name}
-                        price={product.priceInRUB}
-                      />
-                    </ItemActions>
-                  </ItemContent>
-                </Item>
+                <ProductCard
+                  key={product.id}
+                  productId={product.id}
+                  productName={product.name}
+                  description={product.description}
+                  image={image ?? undefined}
+                  price={product.priceInRUB}
+                  compareAtPrice={product.compareAtPriceInRUB}
+                />
               );
             })}
           </ItemGroup>
